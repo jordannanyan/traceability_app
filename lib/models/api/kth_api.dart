@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:traceability_app/models/get_kth_by_id.dart';
 import 'package:traceability_app/utils/utils.dart';
+import 'package:traceability_app/models/api/session_monitor.dart';
 
 class KthApi {
   late final Dio _dio;
@@ -26,6 +27,8 @@ class KthApi {
         responseType: ResponseType.json,
       ),
     );
+
+    _dio.interceptors.add(SessionMonitor.watchdog());
 
     if (kDebugMode) {
       _dio.interceptors.add(

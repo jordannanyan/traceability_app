@@ -13,6 +13,7 @@ import 'package:traceability_app/models/api/outbox_error.dart';
 import 'package:traceability_app/models/api/pending_outbox.dart';
 import 'package:traceability_app/models/get_trees.dart';
 import 'package:traceability_app/utils/utils.dart';
+import 'package:traceability_app/models/api/session_monitor.dart';
 
 /// ===============================
 /// Hasil operasi offline-first
@@ -190,6 +191,8 @@ class TreeApi {
         responseType: ResponseType.json,
       ),
     );
+
+    _dio.interceptors.add(SessionMonitor.watchdog());
 
     if (kDebugMode) {
       _dio.interceptors.add(

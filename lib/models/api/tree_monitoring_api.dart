@@ -12,6 +12,7 @@ import 'package:traceability_app/models/api/outbox_error.dart';
 import 'package:traceability_app/models/api/pending_outbox.dart';
 import 'package:traceability_app/models/tree_monitoring.dart';
 import 'package:traceability_app/utils/utils.dart'; // AppConstants.baseUrl
+import 'package:traceability_app/models/api/session_monitor.dart';
 
 class TreeMonitoringOpResult {
   final bool appliedOnline;
@@ -126,6 +127,8 @@ class TreeMonitoringApi {
         responseType: ResponseType.json,
       ),
     );
+
+    _dio.interceptors.add(SessionMonitor.watchdog());
 
     if (kDebugMode) {
       _dio.interceptors.add(

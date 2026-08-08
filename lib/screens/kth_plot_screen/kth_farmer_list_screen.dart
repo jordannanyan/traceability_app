@@ -6,6 +6,7 @@ import 'package:traceability_app/screens/kth_plot_screen/kth_plot_screen_widget/
 import 'package:traceability_app/screens/kth_plot_screen/kth_plot_screen_widget/offline_banner_widget.dart';
 import 'package:traceability_app/screens/kth_plot_screen/kth_plot_screen.dart';
 import 'package:traceability_app/screens/widgets/bottom_navigation_bar_widget.dart';
+import 'package:traceability_app/screens/widgets/stale_data_banner.dart';
 import 'package:traceability_app/themes/theme_color.dart';
 import 'package:traceability_app/utils/controller_registry.dart';
 
@@ -73,6 +74,22 @@ class KthFarmerListScreen extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
                   child: KthOfflineBanner(isID: isID),
+                ),
+
+              // Online but the refresh did not go through — say so instead of
+              // passing stored rows off as current.
+              if (!isOfflineView)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                  child: StaleDataBanner(
+                    outcome: c.refreshOutcome.value,
+                    isID: isID,
+                    onRetry: () => c.load(
+                      search: c.searchController.text.trim().isEmpty
+                          ? null
+                          : c.searchController.text.trim(),
+                    ),
+                  ),
                 ),
 
               // Stats card

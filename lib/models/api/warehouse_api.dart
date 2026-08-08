@@ -11,6 +11,7 @@ import 'package:traceability_app/models/edit_warehouse.dart';
 import 'package:traceability_app/models/get_warehouse.by_id.dart';
 import 'package:traceability_app/models/get_warehouse_by_kth_id.dart';
 import 'package:traceability_app/utils/utils.dart';
+import 'package:traceability_app/models/api/session_monitor.dart';
 
 /// Hasil operasi offline-first
 class WarehouseOpResult {
@@ -90,6 +91,8 @@ class WarehouseApi {
         responseType: ResponseType.json,
       ),
     );
+
+    _dio.interceptors.add(SessionMonitor.watchdog());
 
     if (kDebugMode) {
       _dio.interceptors.add(

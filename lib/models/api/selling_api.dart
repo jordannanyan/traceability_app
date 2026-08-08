@@ -9,6 +9,7 @@ import 'package:traceability_app/models/api/outbox_error.dart';
 import 'package:traceability_app/models/get_selling_by_id.dart';
 import 'package:traceability_app/models/get_selling_by_kth_id.dart';
 import 'package:traceability_app/utils/utils.dart';
+import 'package:traceability_app/models/api/session_monitor.dart';
 
 /// Hasil operasi offline-first
 class SellingOpResult {
@@ -88,6 +89,8 @@ class SellingApi {
         responseType: ResponseType.json,
       ),
     );
+
+    _dio.interceptors.add(SessionMonitor.watchdog());
 
     if (kDebugMode) {
       _dio.interceptors.add(

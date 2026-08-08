@@ -17,6 +17,8 @@ import 'package:traceability_app/models/get_farmers_by_kth_id.dart';
 // Detail model used elsewhere in your app (controller /farmers/{id})
 import 'package:traceability_app/models/get_farmer_by_id.dart';
 import 'package:traceability_app/models/update_farmer.dart';
+import 'package:traceability_app/models/api/refresh_outcome.dart';
+import 'package:traceability_app/models/api/session_monitor.dart';
 
 /// Hasil operasi offline-first (add/edit/delete)
 class FarmerOpResult {
@@ -112,6 +114,8 @@ class FarmerApi {
         responseType: ResponseType.json,
       ),
     );
+
+    _dio.interceptors.add(SessionMonitor.watchdog());
 
     if (kDebugMode) {
       _dio.interceptors.add(
@@ -324,41 +328,61 @@ class FarmerApi {
     _throwHttp(resp, 'Failed to fetch farmers');
   }
 
-  /// Cached-first (offline-first) untuk LIST
-  Future<List<GetFarmerByKthId>> getFarmersCached({
+  /// Cached-first (offline-first) untuk LIST.
+  ///
+  /// Selalu mengembalikan data (segar bila server menjawab, kalau tidak dari
+  /// cache) **beserta alasannya** lewat [CachedResult.outcome]. Sebelumnya
+  /// kegagalan refresh — termasuk 401 karena sesi hangus — dikembalikan sebagai
+  /// cache lama tanpa tanda apa pun, sehingga daftar tidak pernah bertambah
+  /// walau ditarik-refresh berkali-kali dan tak ada pesan yang menjelaskannya.
+  Future<CachedResult<List<GetFarmerByKthId>>> getFarmersCached({
     int? kthId,
     int? entitiesId,
     String? search,
   }) async {
-    final online = await _isOnline();
+    Future<CachedResult<List<GetFarmerByKthId>>> fallback(
+      RefreshOutcome outcome,
+    ) async {
+      final cached = await _loadFarmersCacheModel(
+        kthId: kthId,
+        entitiesId: entitiesId,
+        search: search,
+      );
+      return CachedResult(cached ?? <GetFarmerByKthId>[], outcome);
+    }
 
-    if (online) {
-      try {
-        final opt = await _auth();
-        final qp = <String, dynamic>{
-          if (kthId != null) 'kth_id': kthId,
-          if (entitiesId != null) 'entities_id': entitiesId,
-          if (search != null && search.isNotEmpty) 'search': search,
-        };
-        final resp = await _dio.get('/farmers', options: opt, queryParameters: qp);
-        if (resp.statusCode == 200) {
-          final list = _asList(resp.data);
-          // Cache the bare array (the model + cache loader expect a JSON array).
-          await _saveFarmersCache(kthId: kthId, entitiesId: entitiesId, search: search, data: list);
-          return getFarmerByKthIdFromJson(jsonEncode(list));
-        }
-        final cached = await _loadFarmersCacheModel(kthId: kthId, entitiesId: entitiesId, search: search);
-        if (cached != null) return cached;
-        _throwHttp(resp, 'Failed to fetch farmers');
-      } catch (_) {
-        final cached = await _loadFarmersCacheModel(kthId: kthId, entitiesId: entitiesId, search: search);
-        if (cached != null) return cached;
-        return <GetFarmerByKthId>[]; // online error + no cache
+    if (!await _isOnline()) return fallback(RefreshOutcome.offlineCache);
+
+    try {
+      final opt = await _auth();
+      final qp = <String, dynamic>{
+        if (kthId != null) 'kth_id': kthId,
+        if (entitiesId != null) 'entities_id': entitiesId,
+        if (search != null && search.isNotEmpty) 'search': search,
+      };
+      final resp = await _dio.get('/farmers', options: opt, queryParameters: qp);
+
+      if (resp.statusCode == 200) {
+        final list = _asList(resp.data);
+        // Cache the bare array (the model + cache loader expect a JSON array).
+        await _saveFarmersCache(
+          kthId: kthId,
+          entitiesId: entitiesId,
+          search: search,
+          data: list,
+        );
+        return CachedResult.fresh(getFarmerByKthIdFromJson(jsonEncode(list)));
       }
-    } else {
-      final cached = await _loadFarmersCacheModel(kthId: kthId, entitiesId: entitiesId, search: search);
-      if (cached != null) return cached;
-      return <GetFarmerByKthId>[]; // offline + no cache
+
+      // The client uses `validateStatus: (_) => true`, so a rejected session
+      // arrives here as a plain response rather than an exception.
+      return fallback(
+        SessionMonitor.isSessionRejection(resp.statusCode)
+            ? RefreshOutcome.unauthorized
+            : RefreshOutcome.refreshFailed,
+      );
+    } catch (_) {
+      return fallback(RefreshOutcome.refreshFailed);
     }
   }
 

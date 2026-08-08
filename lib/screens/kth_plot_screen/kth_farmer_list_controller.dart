@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:traceability_app/models/api/farmer_api.dart';
+import 'package:traceability_app/models/api/refresh_outcome.dart';
 import 'package:traceability_app/models/get_farmers_by_kth_id.dart';
 import 'package:traceability_app/services/language_service.dart';
 
@@ -23,6 +24,10 @@ class KthFarmerListController extends GetxController {
   final all = <GetFarmerByKthId>[].obs;
   final filtered = <GetFarmerByKthId>[].obs;
   final errorMessage = RxnString();
+
+  /// Kenapa daftar ini berisi apa yang ditampilkan — dipakai layar untuk
+  /// memberi tahu bahwa yang tampil mungkin bukan data terbaru.
+  final refreshOutcome = RefreshOutcome.fresh.obs;
 
   int? _kthId;
   Timer? _debounce;
@@ -118,14 +123,15 @@ class KthFarmerListController extends GetxController {
     errorMessage.value = null;
 
     try {
-      final list = await _api.getFarmersCached(
+      final result = await _api.getFarmersCached(
         kthId: _kthId,
         search: (search != null && search.trim().isNotEmpty)
             ? search.trim()
             : null,
       );
+      refreshOutcome.value = result.outcome;
 
-      final sorted = List<GetFarmerByKthId>.from(list);
+      final sorted = List<GetFarmerByKthId>.from(result.data);
       sorted.sort((a, b) => (b.id ?? 0).compareTo(a.id ?? 0));
 
       final cacheTime =

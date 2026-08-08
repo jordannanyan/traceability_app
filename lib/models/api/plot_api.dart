@@ -39,6 +39,7 @@ import 'package:traceability_app/models/get_plot_by_farmer_id.dart'
 import 'package:traceability_app/models/get_plot_by_id.dart';
 import 'package:traceability_app/models/get_plot_by_kth_id.dart';
 import 'package:traceability_app/utils/utils.dart';
+import 'package:traceability_app/models/api/session_monitor.dart';
 
 /// Hasil operasi offline-first (add/edit/delete/polygon-points/photo)
 class PlotOpResult {
@@ -197,6 +198,8 @@ class PlotApi {
         responseType: ResponseType.json,
       ),
     );
+
+    _dio.interceptors.add(SessionMonitor.watchdog());
 
     if (kDebugMode) {
       _dio.interceptors.add(

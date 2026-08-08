@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:traceability_app/services/language_service.dart';
+import 'package:traceability_app/services/session_guard.dart';
 import 'package:traceability_app/themes/theme_color.dart';
 import 'package:traceability_app/screens/add_purchasing_screen/add_purchasing_screen.dart';
 import 'package:traceability_app/screens/edit_warehouse_screen/edit_warehouse_screen.dart';
@@ -113,7 +114,9 @@ class MyApp extends StatelessWidget {
         ),
       ),
 
-      // Clamp text scale globally
+      // Clamp text scale globally, and watch for a rejected session from any
+      // screen (SessionGuard sends the user back to login instead of letting
+      // every list quietly serve stale cache).
       builder: (context, child) {
         final mq = MediaQuery.of(context);
         final clamped = mq.textScaler.clamp(
@@ -122,7 +125,7 @@ class MyApp extends StatelessWidget {
         );
         return MediaQuery(
           data: mq.copyWith(textScaler: clamped),
-          child: child!,
+          child: SessionGuard(child: child!),
         );
       },
 

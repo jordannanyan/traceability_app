@@ -18,6 +18,7 @@ import 'package:traceability_app/models/get_purchasing_by_kth_id.dart';
 import 'package:traceability_app/models/get_purchasing_by_kth_id.dart'
     as kth_purchasing;
 import 'package:traceability_app/utils/utils.dart';
+import 'package:traceability_app/models/api/session_monitor.dart';
 
 /// Hasil operasi offline-first (add/edit/delete)
 class PurchasingOpResult {
@@ -157,6 +158,8 @@ class PurchasingApi {
         responseType: ResponseType.json,
       ),
     );
+
+    _dio.interceptors.add(SessionMonitor.watchdog());
 
     if (kDebugMode) {
       _dio.interceptors.add(
