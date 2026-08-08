@@ -180,7 +180,7 @@ class TreeMonitoringApi {
     });
   }
 
-  Never _throwHttp(Response resp, [String msg = 'HTTP error']) {
+  Never _throwHttp(Response<dynamic> resp, [String msg = 'HTTP error']) {
     // DioException (with the response) so outbox push loops can classify the
     // HTTP status. The client uses `validateStatus: (_) => true`, so non-2xx
     // must be converted here or it surfaces as an unclassified plain Exception.
@@ -366,7 +366,7 @@ class TreeMonitoringApi {
     String? photoFilePath,
     String? photoBase64,
   }) async {
-    Response resp;
+    Response<dynamic> resp;
     if (photoFilePath != null && photoFilePath.isNotEmpty && File(photoFilePath).existsSync()) {
       final opt = await _auth();
       final form = FormData.fromMap({
@@ -417,7 +417,7 @@ class TreeMonitoringApi {
     String? photoFilePath,
     String? photoBase64,
   }) async {
-    Response resp;
+    Response<dynamic> resp;
     if (photoFilePath != null && photoFilePath.isNotEmpty && File(photoFilePath).existsSync()) {
       final opt = await _auth();
       final form = FormData.fromMap({

@@ -147,7 +147,7 @@ class FarmerApi {
 
   // agro-api wraps list responses as { data: [...] }; the old API returned a
   // bare array. Accept both so the KTH farmer list is never empty.
-  static List _asList(dynamic body) {
+  static List<dynamic> _asList(dynamic body) {
     if (body is List) return body;
     if (body is Map && body['data'] is List) return body['data'] as List;
     return const <dynamic>[];
@@ -181,7 +181,7 @@ class FarmerApi {
     return Options(headers: headers);
   }
 
-  Never _throwHttp(Response resp, [String fallback = 'HTTP error']) {
+  Never _throwHttp(Response<dynamic> resp, [String fallback = 'HTTP error']) {
     // DioException (with the response) so outbox push loops can classify the
     // HTTP status. The client uses `validateStatus: (_) => true`, so non-2xx
     // must be converted here or it surfaces as an unclassified plain Exception.
@@ -408,7 +408,7 @@ class FarmerApi {
   Future<String> addFarmer(Map<String, dynamic> fields) async {
     fields.removeWhere((k, v) => v == null);
 
-    Response resp;
+    Response<dynamic> resp;
     final foto = fields['foto'];
     final isFotoPath = (foto is String) && foto.isNotEmpty && File(foto).existsSync();
 
@@ -446,7 +446,7 @@ class FarmerApi {
     final foto = fields['foto'];
     final isFotoPath = (foto is String) && foto.isNotEmpty && File(foto).existsSync();
 
-    Response resp;
+    Response<dynamic> resp;
     if (isFotoPath) {
       final form = FormData();
       form.fields.add(const MapEntry('_method', 'PUT'));

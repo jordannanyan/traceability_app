@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import 'package:traceability_app/models/tree_monitoring.dart';
 import 'package:traceability_app/screens/tree_screen/tree_monitoring_controller.dart';
 import 'package:traceability_app/screens/tree_screen/tree_monitoring_upsert_screen.dart';
 import 'package:traceability_app/screens/tree_screen/tree_monitoring_screen_widget/tree_monitoring_chart_widget.dart';
@@ -100,8 +101,8 @@ class TreeMonitoringScreen extends StatelessWidget {
     required bool syncing,
     required bool isLoading,
     required String? errorMsg,
-    required List all,
-    required List pageItems,
+    required List<TreeMonitoring> all,
+    required List<TreeMonitoring> pageItems,
     required List<int> deleting,
     required int page,
     required int pageCount,

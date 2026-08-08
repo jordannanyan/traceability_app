@@ -263,7 +263,7 @@ class TreeApi {
     );
   }
 
-  Never _throwHttp(Response resp, [String msg = 'HTTP error']) {
+  Never _throwHttp(Response<dynamic> resp, [String msg = 'HTTP error']) {
     // DioException (with the response) so outbox push loops can classify the
     // HTTP status. The client uses `validateStatus: (_) => true`, so non-2xx
     // must be converted here or it surfaces as an unclassified plain Exception.
@@ -388,7 +388,7 @@ class TreeApi {
     if (raw == null || raw.isEmpty) return null;
 
     final decoded = jsonDecode(raw);
-    final List list = (decoded is Map && decoded['data'] is List)
+    final List<dynamic> list = (decoded is Map && decoded['data'] is List)
         ? decoded['data'] as List
         : (decoded as List);
     return list
@@ -424,7 +424,7 @@ class TreeApi {
     if (raw == null || raw.isEmpty) return null;
 
     final decoded = jsonDecode(raw);
-    final List list = (decoded is Map && decoded['data'] is List)
+    final List<dynamic> list = (decoded is Map && decoded['data'] is List)
         ? decoded['data'] as List
         : (decoded as List);
     return list
@@ -476,7 +476,7 @@ class TreeApi {
     if (raw == null || raw.isEmpty) return null;
 
     final decoded = jsonDecode(raw);
-    final List list = (decoded is Map && decoded['data'] is List)
+    final List<dynamic> list = (decoded is Map && decoded['data'] is List)
         ? decoded['data'] as List
         : (decoded as List);
     return list
@@ -506,7 +506,7 @@ class TreeApi {
       if (raw == null || raw.isEmpty) continue;
       try {
         final decoded = jsonDecode(raw);
-        final List list = (decoded is Map && decoded['data'] is List)
+        final List<dynamic> list = (decoded is Map && decoded['data'] is List)
             ? decoded['data'] as List
             : (decoded as List);
         out.add(
@@ -614,7 +614,7 @@ class TreeApi {
           queryParameters: {'per_page': perPage},
         );
         if (resp.statusCode == 200) {
-          final List list = (resp.data is Map && resp.data['data'] is List)
+          final List<dynamic> list = (resp.data is Map && resp.data['data'] is List)
               ? (resp.data['data'] as List)
               : (resp.data as List);
           final data = list
@@ -661,7 +661,7 @@ class TreeApi {
           queryParameters: {'page': page, 'per_page': perPage},
         );
         if (resp.statusCode == 200) {
-          final List list = (resp.data is Map && resp.data['data'] is List)
+          final List<dynamic> list = (resp.data is Map && resp.data['data'] is List)
               ? (resp.data['data'] as List)
               : (resp.data as List);
           final data = list
@@ -703,7 +703,7 @@ class TreeApi {
         final opt = await _auth();
         final resp = await _dio.get('/plots/farmer/$farmerId', options: opt);
         if (resp.statusCode == 200) {
-          final List list = (resp.data is Map && resp.data['data'] is List)
+          final List<dynamic> list = (resp.data is Map && resp.data['data'] is List)
               ? (resp.data['data'] as List)
               : (resp.data as List);
           final data = list
@@ -1150,7 +1150,7 @@ class TreeApi {
     void Function(int sent, int total)? onSendProgress,
     CancelToken? cancelToken,
   }) async {
-    Response resp;
+    Response<dynamic> resp;
 
     final hasFile =
         photoFilePath != null &&
@@ -1247,7 +1247,7 @@ class TreeApi {
     void Function(int sent, int total)? onSendProgress,
     CancelToken? cancelToken,
   }) async {
-    Response resp;
+    Response<dynamic> resp;
 
     final hasFile =
         photoFilePath != null &&

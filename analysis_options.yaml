@@ -9,6 +9,27 @@
 # packages, and plugins designed to encourage good coding practices.
 include: package:flutter_lints/flutter.yaml
 
+analyzer:
+  language:
+    # No bare `List` / `Map` / `Response` — a raw type silently degrades
+    # everything it touches to dynamic.
+    strict-raw-types: true
+
+    # strict-casts is deliberately OFF for now. It is the right rule for this
+    # app (implicit dynamic casts from JSON are exactly how a backend field
+    # rename reaches a device unnoticed), but switching it on today reports
+    # ~500 findings, nearly all inside the generated-style `fromJson` model
+    # classes. Turning it on before those are reworked would only make
+    # `flutter analyze` permanently red, which is worse than not having it.
+    # Re-enable together with a pass over lib/models/.
+    # strict-casts: true
+
+  errors:
+    # Fail the build instead of leaving these as easily-ignored warnings.
+    unused_import: error
+    unused_local_variable: error
+    avoid_print: error
+
 linter:
   # The lint rules applied to this project can be customized in the
   # section below to disable rules from the `package:flutter_lints/flutter.yaml`

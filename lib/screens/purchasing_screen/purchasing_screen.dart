@@ -14,7 +14,8 @@ import 'package:traceability_app/utils/controller_registry.dart';
 import 'package:traceability_app/themes/app_tokens.dart';
 // Kept for backwards-compatibility if registered in MaterialApp.
 // No longer used by PurchasingScreen internally.
-final RouteObserver<PageRoute> routeObserver = RouteObserver<PageRoute>();
+final RouteObserver<PageRoute<dynamic>> routeObserver =
+    RouteObserver<PageRoute<dynamic>>();
 
 class PurchasingScreen extends StatelessWidget {
   const PurchasingScreen({super.key});

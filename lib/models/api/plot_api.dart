@@ -247,7 +247,7 @@ class PlotApi {
     return Options(headers: headers);
   }
 
-  Never _throwHttp(Response resp, [String fallback = 'HTTP error']) {
+  Never _throwHttp(Response<dynamic> resp, [String fallback = 'HTTP error']) {
     // Throw a DioException carrying the response so outbox push loops can
     // classify the HTTP status (poison vs retry). Because the client uses
     // `validateStatus: (_) => true`, a non-2xx never raises a DioException on

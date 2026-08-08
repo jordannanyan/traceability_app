@@ -179,7 +179,7 @@ class TreeController extends GetxController {
     final p = await SharedPreferences.getInstance();
     final raw = p.getString(_farmersKey(kthId));
     if (raw == null || raw.isEmpty) return null;
-    final List list = jsonDecode(raw) as List;
+    final List<dynamic> list = jsonDecode(raw) as List<dynamic>;
     return list
         .map<Map<String, dynamic>>(
             (e) => Map<String, dynamic>.from(e as Map))
@@ -220,10 +220,10 @@ class TreeController extends GetxController {
             queryParameters: params,
           );
           if (resp.statusCode == 200) {
-            final List dataList =
+            final List<dynamic> dataList =
                 (resp.data is Map && resp.data['data'] is List)
-                    ? (resp.data['data'] as List)
-                    : (resp.data as List);
+                    ? (resp.data['data'] as List<dynamic>)
+                    : (resp.data as List<dynamic>);
             final rawRows = dataList
                 .map<Map<String, dynamic>>(
                     (e) => Map<String, dynamic>.from(e as Map))

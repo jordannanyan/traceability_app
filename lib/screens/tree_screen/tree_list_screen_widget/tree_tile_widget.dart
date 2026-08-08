@@ -98,7 +98,6 @@ class TreeTile extends StatelessWidget {
       );
     } else {
       final url = _resolvePhotoUrl(data.photoPath);
-      print(url);
       if (url != null && url.isNotEmpty) {
         thumb = ClipRRect(
           borderRadius: BorderRadius.circular(Radii.sm),

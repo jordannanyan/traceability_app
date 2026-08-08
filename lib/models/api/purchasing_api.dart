@@ -227,7 +227,7 @@ class PurchasingApi {
     return Options(headers: headers);
   }
 
-  Never _throwHttp(Response resp, [String fallback = 'HTTP error']) {
+  Never _throwHttp(Response<dynamic> resp, [String fallback = 'HTTP error']) {
     // DioException (with the response) so outbox push loops can classify the
     // HTTP status. The client uses `validateStatus: (_) => true`, so non-2xx
     // must be converted here or it surfaces as an unclassified plain Exception.
