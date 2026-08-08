@@ -2,12 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:traceability_app/screens/home_kth_screen/home_kth_controller.dart';
 import 'package:traceability_app/screens/home_kth_screen/home_kth_screen_widget/gudang_card_widget.dart';
-import 'package:traceability_app/screens/home_kth_screen/home_kth_screen_widget/penjualan_card_widget.dart';
 import 'package:traceability_app/screens/kth_plot_screen/kth_farmer_list_screen.dart';
 import 'package:traceability_app/screens/tree_screen/tree_screen.dart';
 import 'package:traceability_app/screens/widgets/bottom_navigation_bar_widget.dart';
 import 'package:traceability_app/screens/widgets/home_green_header.dart';
 import 'package:traceability_app/screens/widgets/section_header.dart';
+import 'package:traceability_app/screens/widgets/stale_data_banner.dart';
+import 'package:traceability_app/screens/widgets/under_development.dart';
 import 'package:traceability_app/utils/controller_registry.dart';
 
 class HomeKthScreen extends StatelessWidget {
@@ -85,6 +86,15 @@ class HomeKthScreen extends StatelessWidget {
                   physics: const AlwaysScrollableScrollPhysics(),
                   children: [
                     Obx(
+                      () => c.isOffline.value
+                          ? const SizedBox.shrink()
+                          : StaleDataBanner(
+                              outcome: c.refreshOutcome.value,
+                              isID: c.language.value == 'id',
+                              onRetry: c.refresh,
+                            ),
+                    ),
+                    Obx(
                       () => SectionHeader(
                         title: c.language.value == 'id' ? 'Gudang' : 'Warehouse',
                         viewMoreLabel: c.language.value == 'id'
@@ -106,7 +116,17 @@ class HomeKthScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    _PenjualanSection(c: c),
+                    // Penjualan ikut struktur data baru dan endpoint lamanya
+                    // sudah tidak ada — tampilkan keterangan, jangan angka
+                    // lama dari cache.
+                    Obx(
+                      () => UnderDevelopmentCard(
+                        isID: c.language.value == 'id',
+                        featureName: c.language.value == 'id'
+                            ? 'Penjualan'
+                            : 'Sales',
+                      ),
+                    ),
                     const SizedBox(height: 16),
                   ],
                 ),
@@ -160,42 +180,6 @@ class _GudangSection extends StatelessWidget {
   }
 }
 
-class _PenjualanSection extends StatelessWidget {
-  final HomeKthController c;
-  const _PenjualanSection({required this.c});
-
-  @override
-  Widget build(BuildContext context) {
-    return Obx(() {
-      if (c.isLoading.value) {
-        return const Center(
-          child: Padding(
-            padding: EdgeInsets.symmetric(vertical: 12),
-            child: CircularProgressIndicator(),
-          ),
-        );
-      }
-
-      final d = c.sellingData.value;
-      if (d != null && (d.data ?? []).isNotEmpty) {
-        return PenjualanCardColumn(
-          penjualanData: d,
-          language: c.language.value,
-          isOffline: c.isOffline.value,
-        );
-      }
-
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          child: Text(
-            c.language.value == 'id'
-                ? 'Tidak ada data penjualan tersedia'
-                : 'No sales data available',
-            style: const TextStyle(color: Colors.grey, fontSize: 14),
-          ),
-        ),
-      );
-    });
-  }
-}
+// _PenjualanSection dihapus bersama pemanggilan API penjualan; bagian itu kini
+// memakai UnderDevelopmentCard. Widget PenjualanCardColumn sendiri masih ada di
+// repositori untuk dipakai lagi saat layar penjualan dibangun ulang.

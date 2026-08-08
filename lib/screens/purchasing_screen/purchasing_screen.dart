@@ -1,187 +1,53 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import 'package:traceability_app/screens/purchasing_screen/purchasing_controller.dart';
-import 'package:traceability_app/screens/purchasing_screen/purchasing_screen_widget/purchasing_bar_chart_widget.dart';
-import 'package:traceability_app/screens/purchasing_screen/purchasing_screen_widget/purchasing_card_widget.dart';
-import 'package:traceability_app/screens/purchasing_screen/purchasing_screen_widget/purchasing_header_widget.dart';
-import 'package:traceability_app/screens/purchasing_screen/purchasing_screen_widget/purchasing_offline_banner_widget.dart';
 import 'package:traceability_app/screens/widgets/bottom_navigation_bar_widget.dart';
-import 'package:traceability_app/screens/widgets/button_widget.dart';
+import 'package:traceability_app/screens/widgets/under_development.dart';
+import 'package:traceability_app/services/language_service.dart';
 import 'package:traceability_app/themes/theme_text.dart';
-import 'package:traceability_app/utils/controller_registry.dart';
 
-import 'package:traceability_app/themes/app_tokens.dart';
 // Kept for backwards-compatibility if registered in MaterialApp.
-// No longer used by PurchasingScreen internally.
 final RouteObserver<PageRoute<dynamic>> routeObserver =
     RouteObserver<PageRoute<dynamic>>();
 
+/// Pembelian — **ditutup sementara**.
+///
+/// Pembelian, processing dan penjualan sudah pindah ke struktur database baru,
+/// dan endpoint yang dipakai layar ini (`/purchasing/kth/:id`) tidak ada lagi
+/// di agro-api — jawabannya 404. Layar lamanya masih bisa tampil karena membaca
+/// cache, tetapi itu justru berbahaya: angka transaksi berbulan-bulan lalu
+/// terlihat seolah data hari ini. Jadi isinya diganti keterangan jujur, dan
+/// tidak ada lagi permintaan ke server dari sini.
+///
+/// `PurchasingController` beserta widget grafik/kartu sengaja ditinggalkan di
+/// repositori sebagai bahan saat layar ini dibangun ulang mengikuti struktur
+/// yang baru.
 class PurchasingScreen extends StatelessWidget {
   const PurchasingScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final c = ControllerRegistry.lazyPut(() => PurchasingController());
-
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
         centerTitle: true,
-        title: Obx(() => Text(
-              c.language.value == 'id' ? 'Pembelian' : 'Purchasing',
-              style: ThemeTextStyle.textStyleFirstBoldWhite,
-            )),
-      ),
-      body: Obx(() {
-        final isLoading = c.isLoading.value;
-        final errorMsg = c.error.value;
-        final isID = c.language.value == 'id';
-        final data = c.data.value;
-        final list = data?.data ?? const [];
-        final isOfflineView = c.isOfflineView.value;
-        final isSyncing = c.isSyncing.value;
-        final lastSync = c.lastSync.value;
-
-        if (isLoading && data == null) {
-          return const Center(
-            child: Padding(
-              padding: EdgeInsets.all(Insets.xl),
-              child: CircularProgressIndicator(),
-            ),
-          );
-        }
-
-        if (errorMsg != null && data == null) {
-          return Center(
-            child: Padding(
-              padding: const EdgeInsets.all(Insets.xl),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    errorMsg,
-                    textAlign: TextAlign.center,
-                    style: ThemeTextStyle
-                        .textStyleForthBold
-                        .copyWith(color: Colors.red),
-                  ),
-                  const SizedBox(height: 12),
-                  FilledButton(
-                    onPressed: c.load,
-                    child: Text(isID ? 'Coba Lagi' : 'Try Again'),
-                  ),
-                ],
-              ),
-            ),
-          );
-        }
-
-        return RefreshIndicator(
-          onRefresh: c.load,
-          child: SingleChildScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            child: Padding(
-              padding: const EdgeInsets.all(18.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (isOfflineView)
-                    PurchasingOfflineBanner(
-                      isID: isID,
-                      isSyncing: isSyncing,
-                      onSync: () => c.syncNow(context),
-                    ),
-
-                  PurchasingHeader(
-                    isID: isID,
-                    lastSyncText:
-                        '${isID ? 'Terakhir sinkron' : 'Last sync'}: ${c.fmtLastSync(lastSync)}',
-                  ),
-                  const SizedBox(height: 8),
-
-                  // Chart card
-                  Container(
-                    height: 250,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(Radii.md),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.grey.withValues(alpha: 0.10),
-                          spreadRadius: 1,
-                          blurRadius: 4,
-                          offset: const Offset(0, 1),
-                        ),
-                      ],
-                    ),
-                    child: list.isNotEmpty && data != null
-                        ? PurchasingBarChart(
-                            data,
-                            language: isID ? 'id' : 'en',
-                          )
-                        : Center(
-                            child: Text(
-                              isID
-                                  ? 'Tidak ada data pembelian tersedia'
-                                  : 'No purchasing data available',
-                              style: const TextStyle(
-                                  color: Colors.grey, fontSize: 16),
-                            ),
-                          ),
-                  ),
-                  const SizedBox(height: 24),
-
-                  Text(
-                    isID ? 'Riwayat Pembelian' : 'Purchasing History',
-                    style: ThemeTextStyle.textStyleFirstBold,
-                  ),
-                  const SizedBox(height: 16),
-
-                  Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: ButtonWidget(
-                      textButton:
-                          isID ? 'Tambah Pembelian' : 'Add Purchasing',
-                      route: '',
-                      onPressed: isOfflineView
-                          ? null
-                          : () async {
-                              final added = await Navigator.pushNamed(
-                                context,
-                                '/add-Pembelian',
-                              );
-                              if (added == true) {
-                                await c.load();
-                              }
-                            },
-                    ),
-                  ),
-
-                  if (list.isNotEmpty && data != null)
-                    PurchasingCardWidget(
-                      purchasingData: data,
-                      language: isID ? 'id' : 'en',
-                      isOffline: isOfflineView,
-                      onEdited: c.load,
-                      pendingKindFor: c.pendingKindFor,
-                    )
-                  else
-                    Center(
-                      child: Text(
-                        isID
-                            ? 'Tidak ada riwayat Pembelian tersedia'
-                            : 'No Purchasing history available',
-                        style: const TextStyle(
-                            color: Colors.grey, fontSize: 16),
-                      ),
-                    ),
-                ],
-              ),
-            ),
+        title: Obx(
+          () => Text(
+            LanguageService.to.language.value == 'id'
+                ? 'Pembelian'
+                : 'Purchasing',
+            style: ThemeTextStyle.textStyleFirstBoldWhite,
           ),
-        );
-      }),
+        ),
+      ),
+      body: Obx(
+        () => UnderDevelopment(
+          isID: LanguageService.to.language.value == 'id',
+          featureName: LanguageService.to.language.value == 'id'
+              ? 'pembelian'
+              : 'purchasing',
+        ),
+      ),
       bottomNavigationBar: const BottomNavigationBarWidget(currentIndex: 1),
     );
   }

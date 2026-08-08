@@ -3,16 +3,14 @@ import 'dart:async';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:traceability_app/models/api/selling_api.dart';
+import 'package:traceability_app/models/api/refresh_outcome.dart';
 import 'package:traceability_app/models/api/warehouse_api.dart';
-import 'package:traceability_app/models/get_selling_by_kth_id.dart';
 import 'package:traceability_app/models/get_warehouse_by_kth_id.dart';
 import 'package:traceability_app/services/language_service.dart';
 import 'package:traceability_app/services/sync_service.dart';
 
 class HomeKthController extends GetxController {
   final _wApi = WarehouseApi();
-  final _sApi = SellingApi();
 
   final language = LanguageService.to.language;
   final kthName = ''.obs;
@@ -21,7 +19,9 @@ class HomeKthController extends GetxController {
   final isLoading = true.obs;
   final error = RxnString();
   final warehouseData = Rxn<GetWarehouseByKthId>();
-  final sellingData = Rxn<GetSellingByKthId>();
+
+  /// Kenapa isi beranda seperti yang ditampilkan.
+  final refreshOutcome = RefreshOutcome.fresh.obs;
 
   int _kthId = 0;
   StreamSubscription<dynamic>? _connSub;
@@ -83,24 +83,18 @@ class HomeKthController extends GetxController {
     error.value = null;
 
     try {
-      final warehouseFut = _wApi.getWarehouseByKthIdCached(_kthId);
-      final sellingFut = _sApi.getSellingByKthIdCached(_kthId);
+      // Penjualan tidak diambil lagi: `/selling/kth/:id` sudah tidak ada di
+      // agro-api (404) karena penjualan pindah ke struktur baru. Bagian
+      // Penjualan di beranda kini menampilkan keterangan "sedang dalam
+      // pengembangan", jadi memanggilnya hanya menghasilkan error sia-sia.
+      final warehouse = await _wApi.getWarehouseByKthIdCached(_kthId);
 
-      final warehouse = await warehouseFut;
-      final selling = await sellingFut;
+      warehouseData.value = warehouse.data;
+      refreshOutcome.value = warehouse.outcome;
 
-      warehouseData.value = warehouse;
-      sellingData.value = selling;
-
-      final times = await Future.wait([
-        _wApi.getWarehouseByKthCacheTime(_kthId),
-        _sApi.getSellingByKthCacheTime(_kthId),
-      ]);
-      final latest = times.whereType<DateTime>().fold<DateTime?>(
-            null,
-            (prev, t) => prev == null || t.isAfter(prev) ? t : prev,
-          );
-      lastSyncDisplay.value = _fmtLastSync(latest);
+      lastSyncDisplay.value = _fmtLastSync(
+        await _wApi.getWarehouseByKthCacheTime(_kthId),
+      );
     } catch (e) {
       error.value = e.toString();
     } finally {

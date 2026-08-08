@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:traceability_app/models/api/purchasing_api.dart';
+import 'package:traceability_app/models/api/refresh_outcome.dart';
 import 'package:traceability_app/models/get_purchasing_by_farmer_id.dart';
 import 'package:traceability_app/screens/farmer_setoran_screen/setoran_screen_widget/purchasing_mothly_chart_widget.dart';
 import 'package:traceability_app/services/language_service.dart';
@@ -22,6 +23,9 @@ class FarmerSetoranController extends GetxController {
   final error        = RxnString();
   final items        = <Datum>[].obs;
   final metric       = PurchasingMetric.kg.obs;
+
+  /// Kenapa daftar ini berisi apa yang ditampilkan.
+  final refreshOutcome = RefreshOutcome.fresh.obs;
 
   int? farmerId;
 
@@ -72,10 +76,11 @@ class FarmerSetoranController extends GetxController {
       final conn = await Connectivity().checkConnectivity();
       isOfflineView.value = !_isOnlineFrom(conn);
 
-      final res = await _api.getPurchasingByFarmerIdCached(farmerId!);
+      final result = await _api.getPurchasingByFarmerIdCached(farmerId!);
+      refreshOutcome.value = result.outcome;
       lastSync.value = await _api.getPurchasingCacheTime(farmerId!);
 
-      final loaded = (res.data ?? <Datum>[])
+      final loaded = (result.data.data ?? <Datum>[])
           .where((d) => d.date != null)
           .toList()
         ..sort((a, b) => (a.date!).compareTo(b.date!));

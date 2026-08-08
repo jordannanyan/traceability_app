@@ -55,8 +55,11 @@ class PurchasingListController extends GetxController {
       if (id == 0) {
         throw Exception('Farmer ID tidak ditemukan. Silakan login ulang.');
       }
-      final res = await _api.getPurchasingByFarmerIdCached(id);
-      final loaded = (res.data ?? <Datum>[]).toList()
+      // Status refresh-nya tidak disimpan di sini: layar Setoran yang memuat
+      // widget ini sudah menampilkan StaleDataBanner dari controller-nya, jadi
+      // dua peringatan untuk data yang sama hanya akan jadi kebisingan.
+      final result = await _api.getPurchasingByFarmerIdCached(id);
+      final loaded = (result.data.data ?? <Datum>[]).toList()
         ..sort((a, b) =>
             (b.date ?? DateTime(0)).compareTo(a.date ?? DateTime(0)));
       items.value = loaded;

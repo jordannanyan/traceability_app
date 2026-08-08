@@ -1,7 +1,5 @@
 import 'package:traceability_app/models/api/farmer_api.dart';
 import 'package:traceability_app/models/api/plot_api.dart';
-import 'package:traceability_app/models/api/purchasing_api.dart';
-import 'package:traceability_app/models/api/selling_api.dart';
 import 'package:traceability_app/models/api/tree_api.dart';
 import 'package:traceability_app/models/api/tree_monitoring_api.dart';
 import 'package:traceability_app/models/api/warehouse_api.dart';
@@ -26,10 +24,14 @@ class SyncService {
       PlotApi.startAutoSyncListener(),
       TreeApi.startAutoSyncListener(),
       TreeMonitoringApi.startAutoSyncListener(),
-      PurchasingApi.startAutoSyncListener(),
-      SellingApi.startAutoSyncListener(),
       WarehouseApi.startAutoSyncListener(),
       FarmerApi.startAutoSyncListener(),
+      // Pembelian dan penjualan sengaja tidak ikut: layarnya ditutup selama
+      // struktur datanya dibangun ulang, dan antrean yang mungkin masih
+      // tersimpan di HP dibuat dengan bentuk data lama. Mendorongnya sekarang
+      // berisiko menulis data yang salah ke database baru — jadi antrean itu
+      // dibiarkan utuh di perangkat, tidak dikirim dan tidak dihapus, sampai
+      // ada keputusan mau diapakan.
     ]);
   }
 }

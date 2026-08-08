@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:traceability_app/models/api/refresh_outcome.dart';
 import 'package:traceability_app/models/api/selling_api.dart';
 import 'package:traceability_app/models/get_selling_by_kth_id.dart' as model;
 import 'package:traceability_app/services/language_service.dart';
@@ -21,6 +22,9 @@ class SellingController extends GetxController
   final error = RxnString();
   final lastSync = Rxn<DateTime>();
   final isSyncing = false.obs;
+
+  /// Kenapa daftar ini berisi apa yang ditampilkan.
+  final refreshOutcome = RefreshOutcome.fresh.obs;
 
   late AnimationController animationController;
   late Animation<double> fadeAnimation;
@@ -93,9 +97,10 @@ class SellingController extends GetxController
       final conn = await Connectivity().checkConnectivity();
       isOfflineView.value = !_isOnlineFrom(conn);
 
-      final res = await _api.getSellingByKthIdCached(_kthId!);
+      final result = await _api.getSellingByKthIdCached(_kthId!);
+      refreshOutcome.value = result.outcome;
       lastSync.value = await _api.getSellingByKthCacheTime(_kthId!);
-      items.assignAll(res.data ?? <model.Datum>[]);
+      items.assignAll(result.data.data ?? <model.Datum>[]);
     } catch (e) {
       error.value = e.toString();
     } finally {

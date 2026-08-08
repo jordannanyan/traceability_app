@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:traceability_app/models/api/pending_outbox.dart';
+import 'package:traceability_app/models/api/refresh_outcome.dart';
 import 'package:traceability_app/models/api/purchasing_api.dart';
 import 'package:traceability_app/models/get_purchasing_by_kth_id.dart' as pm;
 import 'package:traceability_app/services/language_service.dart';
@@ -24,6 +25,10 @@ class PurchasingController extends GetxController {
 
   /// Queued-but-not-uploaded purchasing ops (CRUD + status changes).
   final pending = PendingIndex.empty.obs;
+
+  /// Kenapa daftar ini berisi apa yang ditampilkan — dipakai layar untuk
+  /// memberi tahu bahwa yang tampil mungkin bukan data terbaru.
+  final refreshOutcome = RefreshOutcome.fresh.obs;
 
   int? _kthId;
   StreamSubscription<dynamic>? _connSub;
@@ -83,7 +88,9 @@ class PurchasingController extends GetxController {
       final conn = await Connectivity().checkConnectivity();
       isOfflineView.value = !_isOnlineFrom(conn);
 
-      final res = await _api.getPurchasingByKthIdCached(_kthId!);
+      final result = await _api.getPurchasingByKthIdCached(_kthId!);
+      refreshOutcome.value = result.outcome;
+      final res = result.data;
       lastSync.value = await _api.getPurchasingByKthCacheTime(_kthId!);
 
       // Purchases with a queued edit or status change keep their row and get a

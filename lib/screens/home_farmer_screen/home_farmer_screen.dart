@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:traceability_app/screens/home_farmer_screen/home_farmer_controller.dart';
 import 'package:traceability_app/screens/home_farmer_screen/home_farmer_screen_widget/plot_list_farmer_widget.dart';
-import 'package:traceability_app/screens/home_farmer_screen/home_farmer_screen_widget/purchasing_list_widget.dart';
+import 'package:traceability_app/screens/widgets/under_development.dart';
 import 'package:traceability_app/screens/widgets/bottom_navigation_bar_widget.dart';
 import 'package:traceability_app/screens/widgets/home_green_header.dart';
 import 'package:traceability_app/screens/widgets/section_header.dart';
@@ -89,7 +89,16 @@ class HomeFarmerScreen extends StatelessWidget {
                               context, '/pembelian-petani'),
                         )),
                     const SizedBox(height: 8),
-                    const PurchasingListWidget(),
+                    // Setoran mengikuti struktur data baru dan endpoint lamanya
+                    // sudah tidak ada — jangan tampilkan angka lama dari cache.
+                    Obx(
+                      () => UnderDevelopmentCard(
+                        isID: c.language.value == 'id',
+                        featureName: c.language.value == 'id'
+                            ? 'Setoran'
+                            : 'Deposits',
+                      ),
+                    ),
                     const SizedBox(height: 16),
                   ],
                 ),
