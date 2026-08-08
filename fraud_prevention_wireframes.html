@@ -1,0 +1,1745 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Fraud Prevention Wireframes — Traceability App</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, 'Segoe UI', Roboto, sans-serif;
+  background: #DDE8D8;
+  padding: 40px 36px 80px;
+  min-width: 1700px;
+}
+
+/* ── Page header ── */
+.page-header { margin-bottom: 36px; }
+.page-title { font-size: 26px; font-weight: 800; color: #1B5E20; letter-spacing: -0.5px; }
+.page-meta { font-size: 13px; color: #5A7A5A; margin-top: 5px; }
+.legend {
+  display: flex; gap: 18px; flex-wrap: wrap;
+  margin-top: 14px;
+}
+.legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #555; }
+.legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+
+/* ── Grid ── */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(4, 380px);
+  gap: 48px 28px;
+}
+
+/* ── Phone wrapper ── */
+.phone-wrap { display: flex; flex-direction: column; align-items: center; }
+.screen-label {
+  margin-bottom: 12px; text-align: center;
+  display: flex; align-items: center; gap: 7px;
+  font-size: 12px; font-weight: 800;
+  color: #1B5E20; text-transform: uppercase; letter-spacing: 0.6px;
+}
+.snum {
+  width: 22px; height: 22px; border-radius: 50%;
+  background: #2E7D32; color: white;
+  font-size: 11px; font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+
+/* ── Phone chrome ── */
+.phone {
+  width: 375px;
+  background: #111;
+  border-radius: 46px;
+  padding: 11px;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.12), inset 0 0 0 1px rgba(0,0,0,0.5);
+  position: relative;
+}
+.phone::before {
+  content: '';
+  position: absolute; top: 17px; left: 50%; transform: translateX(-50%);
+  width: 100px; height: 6px;
+  background: #222; border-radius: 3px; z-index: 10;
+}
+.phone-inner {
+  background: #F4F5F0;
+  border-radius: 36px;
+  overflow: hidden;
+  height: 760px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Status bar ── */
+.status-bar {
+  background: #1B5E20; color: white;
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 14px 22px 8px;
+  font-size: 12px; font-weight: 700;
+  flex-shrink: 0;
+}
+.s-icons { display: flex; gap: 4px; align-items: center; font-size: 11px; }
+
+/* ── App bar ── */
+.app-bar {
+  background: #1B5E20; color: white;
+  display: flex; align-items: center;
+  padding: 10px 14px 13px;
+  gap: 10px; flex-shrink: 0;
+}
+.app-bar-title { font-size: 17px; font-weight: 700; flex: 1; }
+.app-bar-sub { font-size: 10px; opacity: 0.75; display: block; }
+.back { font-size: 20px; line-height: 1; color: white; }
+.app-icon {
+  width: 34px; height: 34px; border-radius: 50%;
+  background: rgba(255,255,255,0.15);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px;
+}
+
+/* ── Screen body ── */
+.screen-body { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
+.scroll { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+.scroll::-webkit-scrollbar { display: none; }
+
+/* ── Step progress ── */
+.step-progress {
+  display: flex; align-items: center; gap: 0;
+  background: white; padding: 10px 14px;
+  border-bottom: 1px solid #E8E8E8; flex-shrink: 0;
+}
+.sp-item { display: flex; align-items: center; gap: 5px; flex: 1; }
+.sp-dot {
+  width: 22px; height: 22px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 800; flex-shrink: 0;
+}
+.sp-dot.done { background: #2E7D32; color: white; }
+.sp-dot.active { background: #FF8F00; color: white; }
+.sp-dot.pending { background: #E0E0E0; color: #9E9E9E; }
+.sp-lbl { font-size: 9px; font-weight: 700; color: #9E9E9E; text-transform: uppercase; }
+.sp-lbl.active { color: #E65100; }
+.sp-lbl.done { color: #2E7D32; }
+.sp-line { flex: 1; height: 2px; background: #E0E0E0; max-width: 20px; }
+.sp-line.done { background: #2E7D32; }
+
+/* ── Card ── */
+.card {
+  background: white; border-radius: 14px; padding: 13px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+}
+.card-hdr {
+  font-size: 11px; font-weight: 800; color: #2E7D32;
+  text-transform: uppercase; letter-spacing: 0.4px;
+  margin-bottom: 10px; display: flex; align-items: center; gap: 6px;
+}
+.card-icon { font-size: 14px; }
+
+/* ── Form fields ── */
+.field { margin-bottom: 9px; }
+.flabel {
+  font-size: 10px; font-weight: 700; color: #8A8A8A;
+  text-transform: uppercase; letter-spacing: 0.3px;
+  margin-bottom: 4px; display: flex; align-items: center; justify-content: space-between;
+}
+.finput {
+  background: #F8F9F5; border: 1.5px solid #DDEEDD;
+  border-radius: 9px; padding: 9px 11px;
+  font-size: 13px; color: #1A1A1A;
+  width: 100%; display: flex; align-items: center; justify-content: space-between;
+  min-height: 38px;
+}
+.finput.filled { border-color: #43A047; background: #F1F8F0; }
+.finput.warn { border-color: #FFA000; background: #FFFBF0; }
+.finput.err  { border-color: #E53935; background: #FFF5F5; }
+.fhint { font-size: 10px; margin-top: 3px; line-height: 1.4; }
+.fhint.ok  { color: #43A047; }
+.fhint.warn { color: #E65100; }
+.fhint.err  { color: #C62828; }
+.fhint.grey { color: #AAAAAA; }
+
+/* ── Inline price ref ── */
+.price-ref {
+  background: #F1F8E9; border-radius: 6px;
+  padding: 5px 9px; margin-top: 4px;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.pref-lbl { font-size: 10px; color: #5A7A5A; }
+.pref-val { font-size: 11px; font-weight: 800; color: #1B5E20; }
+
+/* ── Two-col field row ── */
+.field-row { display: flex; gap: 8px; }
+.field-row .field { flex: 1; }
+
+/* ── Summary row ── */
+.sum-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 6px 0; border-bottom: 1px solid #F2F2F2;
+}
+.sum-row:last-child { border-bottom: none; }
+.sum-key { font-size: 12px; color: #777; }
+.sum-val { font-size: 13px; font-weight: 700; color: #1A1A1A; }
+.sum-val.green { color: #2E7D32; }
+.sum-total { font-size: 15px; font-weight: 800; color: #1B5E20; }
+
+/* ── Badges ── */
+.badge {
+  display: inline-flex; align-items: center; gap: 3px;
+  padding: 2px 8px; border-radius: 20px;
+  font-size: 10px; font-weight: 700;
+}
+.bg-green  { background: #E8F5E9; color: #2E7D32; }
+.bg-amber  { background: #FFF8E1; color: #E65100; }
+.bg-red    { background: #FFEBEE; color: #C62828; }
+.bg-blue   { background: #E3F2FD; color: #1565C0; }
+.bg-grey   { background: #F0F0F0; color: #757575; }
+.bg-purple { background: #F3E5F5; color: #6A1B9A; }
+
+/* ── GPS status bar ── */
+.gps-bar {
+  background: white; border-top: 1px solid #E8E8E8;
+  padding: 7px 14px; display: flex; align-items: center;
+  gap: 8px; flex-shrink: 0;
+}
+.gps-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.gps-active { background: #43A047; box-shadow: 0 0 0 2px rgba(67,160,71,0.25); }
+.gps-warn { background: #FFA000; }
+.gps-none { background: #BDBDBD; }
+.gps-label { font-size: 11px; font-weight: 600; }
+.gps-label.active { color: #2E7D32; }
+.gps-label.warn { color: #E65100; }
+
+/* ── Bottom action bar ── */
+.bottom-bar {
+  background: white; padding: 11px 14px;
+  border-top: 1px solid #EBEBEB; flex-shrink: 0;
+}
+.btn {
+  border-radius: 11px; padding: 13px; font-size: 14px; font-weight: 800;
+  text-align: center; display: block; width: 100%; letter-spacing: 0.2px;
+}
+.btn-primary { background: linear-gradient(135deg, #2E7D32 0%, #43A047 100%); color: white; }
+.btn-warn    { background: linear-gradient(135deg, #E65100 0%, #FF8F00 100%); color: white; }
+.btn-danger  { background: linear-gradient(135deg, #B71C1C 0%, #E53935 100%); color: white; }
+.btn-outline { background: white; color: #2E7D32; border: 2px solid #2E7D32; }
+.btn-grey    { background: #EEEEEE; color: #AAAAAA; }
+.btn-sm      { padding: 9px 14px; font-size: 12px; border-radius: 9px; }
+.btn-row     { display: flex; gap: 8px; }
+.btn-row .btn { flex: 1; }
+.btn-disabled { background: #F0F0F0; color: #C0C0C0; border-radius: 11px; padding: 13px; font-size: 14px; font-weight: 800; text-align: center; display: block; width: 100%; }
+
+/* ── Photo upload ── */
+.photo-row { display: flex; gap: 8px; }
+.photo-box {
+  flex: 1; border: 2px dashed #D0D8D0; border-radius: 11px;
+  background: #FAFAF8; min-height: 86px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 3px;
+}
+.photo-box.done { border: 2px solid #43A047; background: #F1F8F0; }
+.photo-box.required { border: 2px dashed #FFA000; background: #FFFBF0; }
+.pb-icon { font-size: 24px; }
+.pb-lbl { font-size: 9px; font-weight: 700; text-transform: uppercase; color: #9E9E9E; text-align: center; }
+.pb-lbl.done { color: #2E7D32; }
+.pb-lbl.req  { color: #E65100; }
+.pb-check { font-size: 11px; color: #2E7D32; font-weight: 800; }
+
+/* ── Signature ── */
+.sig-box {
+  border: 2px dashed #D0D0D0; border-radius: 11px;
+  background: white; height: 72px;
+  display: flex; align-items: center; justify-content: center;
+  position: relative;
+}
+.sig-box.signed { border: 2px solid #2E7D32; background: #F5F8F5; }
+.sig-label { font-size: 11px; color: #BBBBBB; font-weight: 600; }
+
+/* ── Map area ── */
+.map-area {
+  border-radius: 12px; overflow: hidden;
+  border: 1.5px solid #C8DFC8; height: 198px; position: relative;
+  background: #EAF4E4;
+}
+.map-grid {
+  position: absolute; inset: 0;
+  background-image: linear-gradient(#C8DFC8 1px, transparent 1px), linear-gradient(90deg, #C8DFC8 1px, transparent 1px);
+  background-size: 18px 18px;
+  opacity: 0.5;
+}
+.map-label-row {
+  position: absolute; top: 8px; left: 8px; right: 8px;
+  display: flex; justify-content: space-between; align-items: flex-start; z-index: 5;
+}
+.map-compass {
+  background: white; border-radius: 50%; width: 28px; height: 28px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+}
+.map-zoom {
+  background: white; border-radius: 6px; padding: 3px 6px;
+  font-size: 11px; font-weight: 700; color: #555;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.12);
+}
+
+/* ── Location card ── */
+.loc-card {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px; border-radius: 11px;
+}
+.loc-card.inside  { background: #E8F5E9; border: 1.5px solid #A5D6A7; }
+.loc-card.outside { background: #FFF8E1; border: 1.5px solid #FFD54F; }
+.loc-card.far     { background: #FFEBEE; border: 1.5px solid #EF9A9A; }
+.loc-icon { font-size: 22px; }
+.loc-main { font-size: 13px; font-weight: 700; }
+.loc-sub  { font-size: 10px; color: #777; margin-top: 1px; }
+.loc-main.ok  { color: #1B5E20; }
+.loc-main.warn { color: #E65100; }
+.loc-main.err  { color: #C62828; }
+
+/* ── Alert box ── */
+.alert {
+  border-radius: 11px; padding: 11px 12px;
+}
+.alert-warn { background: #FFF8E1; border-left: 4px solid #FFA000; }
+.alert-err  { background: #FFEBEE; border-left: 4px solid #E53935; }
+.alert-ok   { background: #E8F5E9; border-left: 4px solid #2E7D32; }
+.alert-title {
+  font-size: 12px; font-weight: 800; margin-bottom: 4px;
+  display: flex; align-items: center; gap: 5px;
+}
+.alert-title.warn { color: #E65100; }
+.alert-title.err  { color: #C62828; }
+.alert-title.ok   { color: #2E7D32; }
+.alert-body { font-size: 11px; color: #444; line-height: 1.5; }
+
+/* ── Modal overlay ── */
+.modal-overlay {
+  position: absolute; inset: 0; background: rgba(0,0,0,0.5);
+  display: flex; flex-direction: column; justify-content: flex-end;
+  border-radius: 36px; z-index: 20;
+}
+.modal-sheet {
+  background: white; border-radius: 20px 20px 0 0;
+  padding: 16px 16px 24px;
+}
+.modal-pill {
+  width: 40px; height: 4px; background: #E0E0E0;
+  border-radius: 2px; margin: 0 auto 14px;
+}
+.modal-title { font-size: 16px; font-weight: 800; color: #1A1A1A; margin-bottom: 4px; }
+.modal-sub   { font-size: 12px; color: #888; margin-bottom: 12px; }
+
+.modal-block-full {
+  position: absolute; inset: 0;
+  background: white; border-radius: 36px;
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; padding: 24px; z-index: 20;
+  text-align: center;
+}
+.block-icon { font-size: 52px; margin-bottom: 14px; }
+.block-title { font-size: 18px; font-weight: 800; color: #C62828; margin-bottom: 8px; }
+.block-sub { font-size: 12px; color: #666; line-height: 1.6; margin-bottom: 20px; }
+.block-reasons { text-align: left; width: 100%; margin-bottom: 20px; }
+.block-reason-item {
+  display: flex; align-items: flex-start; gap: 8px;
+  background: #FFEBEE; border-radius: 9px;
+  padding: 9px 11px; margin-bottom: 7px;
+}
+.bri-icon { font-size: 14px; flex-shrink: 0; margin-top: 1px; }
+.bri-text { font-size: 11px; color: #5A1A1A; line-height: 1.5; }
+.bri-text strong { color: #C62828; }
+
+/* ── Farmer card ── */
+.farmer-card {
+  display: flex; align-items: center; gap: 11px;
+  padding: 11px 12px; background: #F1F8F0;
+  border-radius: 11px; border: 1.5px solid #C8E6C9;
+}
+.farmer-av {
+  width: 46px; height: 46px; border-radius: 50%;
+  background: #2E7D32; color: white;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; font-weight: 800; flex-shrink: 0;
+}
+.farmer-name { font-size: 14px; font-weight: 800; color: #1B5E20; }
+.farmer-sub  { font-size: 10px; color: #616161; margin-top: 2px; }
+.farmer-meta { font-size: 10px; color: #888; display: flex; align-items: center; gap: 4px; margin-top: 3px; }
+
+/* ── Flow diagram ── */
+.flow-step {
+  display: flex; align-items: flex-start; gap: 10px; margin-bottom: 6px;
+}
+.flow-icon {
+  width: 38px; height: 38px; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; flex-shrink: 0;
+}
+.fi-green  { background: #E8F5E9; }
+.fi-blue   { background: #E3F2FD; }
+.fi-amber  { background: #FFF8E1; }
+.fi-purple { background: #F3E5F5; }
+.fi-teal   { background: #E0F2F1; }
+.flow-content { flex: 1; padding-top: 3px; }
+.flow-title { font-size: 13px; font-weight: 800; color: #1A1A1A; }
+.flow-desc  { font-size: 11px; color: #777; line-height: 1.4; margin-top: 2px; }
+.flow-arrow {
+  text-align: center; color: #C0D0C0; font-size: 14px;
+  padding-left: 10px; margin-bottom: 4px;
+}
+
+/* ── OTP boxes ── */
+.otp-row { display: flex; gap: 6px; justify-content: center; margin: 8px 0; }
+.otp-cell {
+  width: 38px; height: 46px; border: 2px solid #E0E0E0;
+  border-radius: 9px; display: flex; align-items: center; justify-content: center;
+  font-size: 20px; font-weight: 800; color: #1B5E20;
+  background: #F8F8F8;
+}
+.otp-cell.filled { border-color: #2E7D32; background: #E8F5E9; }
+.otp-cell.empty  { border-color: #D0D0D0; color: transparent; }
+
+/* ── Timeline ── */
+.tl-item { display: flex; gap: 10px; margin-bottom: 12px; }
+.tl-col  { display: flex; flex-direction: column; align-items: center; width: 30px; flex-shrink: 0; }
+.tl-dot  {
+  width: 30px; height: 30px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center; font-size: 13px;
+}
+.tl-dot.done   { background: #E8F5E9; border: 2px solid #2E7D32; color: #2E7D32; }
+.tl-dot.active { background: #FFF8E1; border: 2px solid #FFA000; color: #E65100; }
+.tl-dot.pend   { background: #F5F5F5; border: 2px dashed #BDBDBD; color: #BDBDBD; }
+.tl-line { width: 2px; flex: 1; min-height: 14px; }
+.tl-line.done { background: #2E7D32; }
+.tl-line.pend { background: #E0E0E0; }
+.tl-content { flex: 1; padding-top: 3px; }
+.tl-title   { font-size: 13px; font-weight: 700; color: #1A1A1A; }
+.tl-by      { font-size: 10px; color: #888; margin-top: 2px; }
+.tl-time    { font-size: 10px; color: #BBBBBB; }
+.tl-detail  { font-size: 11px; color: #555; margin-top: 3px; line-height: 1.4; }
+
+/* ── Verified banner ── */
+.verified-banner {
+  background: linear-gradient(135deg, #1B5E20, #2E7D32);
+  color: white; padding: 12px 16px;
+  display: flex; align-items: center; gap: 10px;
+  flex-shrink: 0;
+}
+.vb-icon  { font-size: 28px; }
+.vb-title { font-size: 15px; font-weight: 800; }
+.vb-sub   { font-size: 10px; opacity: 0.8; margin-top: 1px; }
+.verified-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 5px 0; border-bottom: 1px solid #F0F0F0;
+}
+.verified-row:last-child { border-bottom: none; }
+.vr-key  { font-size: 11px; color: #999; }
+.vr-val  { font-size: 13px; font-weight: 700; color: #333; display: flex; align-items: center; gap: 4px; }
+.lock-icon { font-size: 11px; color: #CCCCCC; }
+.read-only-overlay {
+  background: #FAFAF8; border: 1.5px solid #E8E8E8;
+  border-radius: 9px; padding: 9px 11px; font-size: 13px;
+  color: #555; display: flex; align-items: center; justify-content: space-between;
+  width: 100%;
+}
+
+/* ── Audit trail entry ── */
+.audit-entry {
+  display: flex; align-items: flex-start; gap: 8px;
+  padding: 7px 0; border-bottom: 1px solid #F0F0F0;
+}
+.audit-entry:last-child { border-bottom: none; }
+.audit-dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 4px; flex-shrink: 0; }
+.audit-content { flex: 1; }
+.audit-action { font-size: 12px; font-weight: 700; color: #333; }
+.audit-meta { font-size: 10px; color: #AAA; }
+
+/* ── Info row ── */
+.info-row { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #F5F5F5; }
+.info-row:last-child { border-bottom: none; }
+.info-key { font-size: 11px; color: #888; }
+.info-val { font-size: 12px; font-weight: 700; color: #1A1A1A; }
+
+/* ── Confirmation action row ── */
+.conf-btn-row { display: flex; gap: 8px; margin-top: 10px; }
+.conf-btn { flex: 1; border-radius: 11px; padding: 13px; font-size: 14px; font-weight: 800; text-align: center; }
+.conf-confirm { background: linear-gradient(135deg, #2E7D32, #43A047); color: white; }
+.conf-dispute { background: white; color: #C62828; border: 2px solid #E53935; }
+
+/* ── Home bar ── */
+.home-bar-wrap {
+  background: #F4F5F0; padding: 6px;
+  display: flex; justify-content: center; flex-shrink: 0;
+}
+.home-bar { width: 120px; height: 4px; background: #C8C8C8; border-radius: 2px; }
+
+/* ── Divider ── */
+.divider { height: 1px; background: #F0F0F0; margin: 6px 0; }
+
+/* ── Download toolbar ── */
+.dl-toolbar {
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  background: white; border-radius: 14px;
+  padding: 14px 18px; margin-bottom: 32px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.10);
+  border: 1.5px solid #C8E6C9;
+}
+.dl-toolbar-title { font-size: 13px; font-weight: 800; color: #1B5E20; margin-right: 4px; }
+.dl-btn-all {
+  background: linear-gradient(135deg, #1B5E20, #2E7D32);
+  color: white; border: none; border-radius: 10px;
+  padding: 10px 20px; font-size: 13px; font-weight: 800;
+  cursor: pointer; display: flex; align-items: center; gap: 7px;
+  box-shadow: 0 2px 8px rgba(46,125,50,0.35);
+  transition: opacity 0.15s;
+}
+.dl-btn-all:hover { opacity: 0.88; }
+.dl-btn-all:disabled { opacity: 0.5; cursor: not-allowed; }
+.dl-btn-print {
+  background: white; color: #1B5E20;
+  border: 2px solid #2E7D32; border-radius: 10px;
+  padding: 10px 18px; font-size: 13px; font-weight: 800;
+  cursor: pointer; display: flex; align-items: center; gap: 7px;
+  transition: background 0.15s;
+}
+.dl-btn-print:hover { background: #F1F8F0; }
+.dl-status { font-size: 12px; color: #2E7D32; margin-left: 4px; font-weight: 700; }
+.dl-divider-v { width: 1px; height: 28px; background: #E0E0E0; }
+.dl-note { font-size: 11px; color: #AAAAAA; margin-left: auto; }
+.dl-btn-single {
+  margin-top: 10px;
+  background: white; color: #2E7D32;
+  border: 1.5px solid #A5D6A7; border-radius: 8px;
+  padding: 6px 14px; font-size: 11px; font-weight: 800;
+  cursor: pointer; display: flex; align-items: center; gap: 5px;
+  width: 100%; justify-content: center;
+  transition: background 0.12s, border-color 0.12s;
+}
+.dl-btn-single:hover { background: #E8F5E9; border-color: #2E7D32; }
+.dl-btn-single:disabled { opacity: 0.5; cursor: not-allowed; }
+@media print {
+  body { background: white; padding: 0; min-width: unset; }
+  .page-header, .dl-toolbar, .dl-btn-single { display: none !important; }
+  .grid { grid-template-columns: repeat(2, 375px); gap: 20px; }
+  .phone-wrap { page-break-inside: avoid; break-inside: avoid; }
+}
+
+/* ── Chip ── */
+.chip-row { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 4px; }
+.chip { padding: 3px 9px; border-radius: 20px; font-size: 10px; font-weight: 700; background: #F0F0F0; color: #666; }
+
+/* ── Section label ── */
+.sec-label { font-size: 10px; font-weight: 800; color: #AAAAAA; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+
+/* ── Warn check item ── */
+.check-item {
+  display: flex; align-items: flex-start; gap: 8px;
+  padding: 8px 10px; border-radius: 9px; margin-bottom: 6px;
+}
+.check-item.warn { background: #FFF8E1; }
+.check-item.err  { background: #FFEBEE; }
+.check-item.ok   { background: #E8F5E9; }
+.ci-icon { font-size: 15px; flex-shrink: 0; margin-top: 1px; }
+.ci-text { flex: 1; }
+.ci-title { font-size: 12px; font-weight: 800; }
+.ci-title.warn { color: #E65100; }
+.ci-title.err  { color: #C62828; }
+.ci-title.ok   { color: #2E7D32; }
+.ci-desc { font-size: 11px; color: #555; margin-top: 1px; line-height: 1.4; }
+
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <div class="page-title">Fraud Prevention — HiFi Wireframes</div>
+  <div class="page-meta">Traceability App &nbsp;·&nbsp; 8 screens covering the complete fraud prevention flow &nbsp;·&nbsp; Flutter / GetX</div>
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:#2E7D32"></div> Pass / Verified</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#FFA000"></div> Warning (soft — can proceed with confirmation)</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#E53935"></div> Hard Block (must not proceed)</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#1565C0"></div> Info / System action</div>
+  </div>
+</div>
+
+<!-- Download toolbar -->
+<div class="dl-toolbar">
+  <span class="dl-toolbar-title">&#11123; Export Screens</span>
+  <button class="dl-btn-all" id="dl-all-btn" onclick="downloadAll()">
+    &#11123; Download All 8 Screens (PNG)
+  </button>
+  <div class="dl-divider-v"></div>
+  <button class="dl-btn-print" onclick="window.print()">
+    &#128438; Print / Save PDF
+  </button>
+  <span class="dl-status" id="dl-status"></span>
+  <span class="dl-note">Powered by html2canvas &nbsp;·&nbsp; Best in Chrome / Edge</span>
+</div>
+
+<div class="grid">
+
+<!-- ═══════════════════════════════════════════════════════════
+     SCREEN 1 — TRANSACTION ENTRY
+═══════════════════════════════════════════════════════════ -->
+<div class="phone-wrap">
+  <div class="screen-label"><div class="snum">1</div> Transaction Entry</div>
+  <div class="phone">
+  <div class="phone-inner">
+    <div class="status-bar">
+      <span>09:41</span>
+      <div class="s-icons"><span>▲▲▲</span><span>WiFi</span><span>100%</span></div>
+    </div>
+    <div class="app-bar">
+      <div class="back">&#8592;</div>
+      <div style="flex:1">
+        <div class="app-bar-title">Tambah Pembelian</div>
+        <span class="app-bar-sub">KTH Maju Sejahtera</span>
+      </div>
+      <div class="app-icon">&#128269;</div>
+    </div>
+
+    <!-- Step progress -->
+    <div class="step-progress">
+      <div class="sp-item">
+        <div class="sp-dot active">1</div>
+        <span class="sp-lbl active">Data</span>
+      </div>
+      <div class="sp-line"></div>
+      <div class="sp-item">
+        <div class="sp-dot pending">2</div>
+        <span class="sp-lbl">Bukti</span>
+      </div>
+      <div class="sp-line"></div>
+      <div class="sp-item">
+        <div class="sp-dot pending">3</div>
+        <span class="sp-lbl">Tandatangan</span>
+      </div>
+    </div>
+
+    <div class="screen-body">
+      <div class="scroll">
+
+        <!-- Farmer info card -->
+        <div class="farmer-card">
+          <div class="farmer-av">BW</div>
+          <div style="flex:1">
+            <div class="farmer-name">Budi Waluyo</div>
+            <div class="farmer-sub">NIK: ••••••••3421 &nbsp;·&nbsp; KTH Maju Sejahtera</div>
+            <div class="farmer-meta">
+              <span>&#128222;</span> 0812-3456-7890 &nbsp;
+              <span class="badge bg-green">Terverifikasi</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Transaction details card -->
+        <div class="card">
+          <div class="card-hdr"><span class="card-icon">&#128203;</span> Detail Transaksi</div>
+
+          <div class="field-row">
+            <div class="field">
+              <div class="flabel">Tanggal</div>
+              <div class="finput filled">10 Mar 2026 <span>&#128197;</span></div>
+            </div>
+            <div class="field">
+              <div class="flabel">Gudang</div>
+              <div class="finput filled">GDG-01 <span>&#8964;</span></div>
+            </div>
+          </div>
+
+          <div class="field">
+            <div class="flabel">Plot Lahan</div>
+            <div class="finput filled">Plot A3 — Desa Cikaret <span>&#8964;</span></div>
+            <div class="fhint grey">&#128205; 2.4 ha &nbsp;·&nbsp; 480 tanaman &nbsp;·&nbsp; 1.2 km</div>
+          </div>
+
+          <div class="field-row">
+            <div class="field">
+              <div class="flabel">Komoditas</div>
+              <div class="finput filled">Kakao <span>&#8964;</span></div>
+            </div>
+            <div class="field">
+              <div class="flabel">Grade</div>
+              <div class="finput filled">Grade A <span>&#8964;</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quantity & price card -->
+        <div class="card">
+          <div class="card-hdr"><span class="card-icon">&#9878;</span> Kuantitas &amp; Harga</div>
+
+          <div class="field">
+            <div class="flabel">Kuantitas (kg) <span class="badge bg-green">Max ~1,440 kg</span></div>
+            <div class="finput filled">380 kg</div>
+            <div class="fhint ok">&#10003; Plausibel untuk 480 tanaman (26% kapasitas maks)</div>
+          </div>
+
+          <div class="field">
+            <div class="flabel">Harga per kg (Rp)</div>
+            <div class="finput warn">18.000 <span style="color:#FFA000">&#9650;</span></div>
+            <div class="price-ref">
+              <span class="pref-lbl">Harga referensi hari ini (Grade A)</span>
+              <span class="pref-val">Rp 20.000/kg</span>
+            </div>
+            <div class="fhint warn">&#9888; 10% di bawah harga referensi — akan muncul peringatan</div>
+          </div>
+
+          <div class="divider"></div>
+
+          <div class="sum-row">
+            <span class="sum-key">Nilai Bruto</span>
+            <span class="sum-val">Rp 6.840.000</span>
+          </div>
+          <div class="sum-row">
+            <span class="sum-key">Potongan</span>
+            <span class="sum-val" style="color:#C62828">- Rp 340.000</span>
+          </div>
+          <div class="sum-row">
+            <span class="sum-key">Pembayaran Bersih</span>
+            <span class="sum-total">Rp 6.500.000</span>
+          </div>
+        </div>
+
+        <!-- GPS capture row -->
+        <div style="height:8px"></div>
+      </div>
+
+      <div class="gps-bar">
+        <div class="gps-dot gps-active"></div>
+        <span class="gps-label active">GPS Aktif &nbsp;·&nbsp; Akurasi 8m</span>
+        <span class="badge bg-green" style="margin-left:auto">&#128205; Dalam batas lahan</span>
+      </div>
+      <div class="bottom-bar">
+        <div class="btn btn-warn">Lanjutkan — Periksa Peringatan &#8594;</div>
+      </div>
+    </div>
+  </div>
+  <div class="home-bar-wrap"><div class="home-bar"></div></div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     SCREEN 2 — EVIDENCE CAPTURE
+═══════════════════════════════════════════════════════════ -->
+<div class="phone-wrap">
+  <div class="screen-label"><div class="snum">2</div> Evidence Capture</div>
+  <div class="phone">
+  <div class="phone-inner">
+    <div class="status-bar">
+      <span>09:43</span>
+      <div class="s-icons"><span>▲▲▲</span><span>WiFi</span><span>98%</span></div>
+    </div>
+    <div class="app-bar">
+      <div class="back">&#8592;</div>
+      <div style="flex:1">
+        <div class="app-bar-title">Bukti Transaksi</div>
+        <span class="app-bar-sub">Langkah 2 dari 3</span>
+      </div>
+    </div>
+
+    <!-- Step progress -->
+    <div class="step-progress">
+      <div class="sp-item">
+        <div class="sp-dot done">&#10003;</div>
+        <span class="sp-lbl done">Data</span>
+      </div>
+      <div class="sp-line done"></div>
+      <div class="sp-item">
+        <div class="sp-dot active">2</div>
+        <span class="sp-lbl active">Bukti</span>
+      </div>
+      <div class="sp-line"></div>
+      <div class="sp-item">
+        <div class="sp-dot pending">3</div>
+        <span class="sp-lbl">Tanda tangan</span>
+      </div>
+    </div>
+
+    <div class="screen-body">
+      <div class="scroll">
+
+        <!-- Upload instruction -->
+        <div class="alert alert-ok">
+          <div class="alert-title ok">&#128247; Foto Bukti Diperlukan</div>
+          <div class="alert-body">Ambil atau unggah foto untuk setiap bukti di bawah. Semua foto akan dicap waktu dan dicatat oleh sistem.</div>
+        </div>
+
+        <!-- Proof of value -->
+        <div class="card">
+          <div class="card-hdr"><span class="card-icon">&#128179;</span> Bukti Nilai Pembelian <span class="badge bg-red" style="margin-left:auto">Wajib</span></div>
+          <div class="photo-row">
+            <div class="photo-box done">
+              <span class="pb-icon">&#128444;</span>
+              <span class="pb-lbl done">&#10003; Terunggah</span>
+              <span class="pb-check">IMG_20260310_001.jpg</span>
+            </div>
+            <div class="photo-box done" style="max-width:80px;font-size:9px">
+              <span style="font-size:18px">&#128269;</span>
+              <span class="pb-lbl done">Pratinjau</span>
+            </div>
+          </div>
+          <div class="fhint ok" style="margin-top:6px">&#10003; Diunggah 09:41 WIB &nbsp;·&nbsp; 1.4 MB &nbsp;·&nbsp; GPS tertanam</div>
+        </div>
+
+        <!-- Proof of deduction -->
+        <div class="card">
+          <div class="card-hdr"><span class="card-icon">&#9986;</span> Bukti Potongan <span class="badge bg-red" style="margin-left:auto">Wajib</span></div>
+          <div class="photo-row">
+            <div class="photo-box done">
+              <span class="pb-icon">&#128444;</span>
+              <span class="pb-lbl done">&#10003; Terunggah</span>
+            </div>
+            <div class="photo-box done" style="max-width:80px">
+              <span style="font-size:18px">&#128269;</span>
+              <span class="pb-lbl done">Pratinjau</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Proof of payment -->
+        <div class="card">
+          <div class="card-hdr"><span class="card-icon">&#128181;</span> Bukti Pembayaran <span class="badge bg-red" style="margin-left:auto">Wajib</span></div>
+          <div class="photo-row">
+            <div class="photo-box required">
+              <span class="pb-icon">&#128247;</span>
+              <span class="pb-lbl req">Belum diunggah</span>
+            </div>
+            <div class="photo-box required" style="max-width:80px">
+              <span style="font-size:18px">&#128196;</span>
+              <span class="pb-lbl req">Dari Galeri</span>
+            </div>
+          </div>
+          <div class="fhint warn" style="margin-top:6px">&#9888; Foto pembayaran belum diunggah — wajib sebelum melanjutkan</div>
+        </div>
+
+        <!-- Signature section -->
+        <div class="card">
+          <div class="card-hdr"><span class="card-icon">&#9999;</span> Tanda Tangan Petani <span class="badge bg-red" style="margin-left:auto">Wajib</span></div>
+          <div class="sig-box signed">
+            <div style="font-size:36px;color:#2E7D32;font-style:italic;font-family:cursive">Budi W.</div>
+          </div>
+          <div class="fhint ok" style="margin-top:6px">&#10003; Ditanda tangani 09:42 WIB &nbsp;·&nbsp; Budi Waluyo</div>
+          <div style="margin-top:8px;display:flex;gap:6px">
+            <div class="btn btn-outline btn-sm" style="flex:1;text-align:center">Ulangi</div>
+            <div class="btn btn-primary btn-sm" style="flex:1;text-align:center">Konfirmasi</div>
+          </div>
+        </div>
+
+        <!-- Metadata note -->
+        <div class="card" style="background:#F8FBF8">
+          <div class="card-hdr"><span class="card-icon">&#128204;</span> Metadata Otomatis</div>
+          <div class="info-row">
+            <span class="info-key">Koordinat GPS</span>
+            <span class="info-val">-6.9147°S, 107.6098°E</span>
+          </div>
+          <div class="info-row">
+            <span class="info-key">Akurasi</span>
+            <span class="info-val">8 m</span>
+          </div>
+          <div class="info-row">
+            <span class="info-key">Waktu server</span>
+            <span class="info-val">10 Mar 2026 09:42:17</span>
+          </div>
+          <div class="info-row">
+            <span class="info-key">ID Petugas</span>
+            <span class="info-val">KTH-007</span>
+          </div>
+        </div>
+
+      </div>
+      <div class="bottom-bar">
+        <div class="btn btn-grey">Unggah Bukti Pembayaran Terlebih Dahulu</div>
+      </div>
+    </div>
+  </div>
+  <div class="home-bar-wrap"><div class="home-bar"></div></div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     SCREEN 3 — GPS & GEOFENCE VALIDATION
+═══════════════════════════════════════════════════════════ -->
+<div class="phone-wrap">
+  <div class="screen-label"><div class="snum">3</div> GPS &amp; Geofence Validation</div>
+  <div class="phone">
+  <div class="phone-inner">
+    <div class="status-bar">
+      <span>09:44</span>
+      <div class="s-icons"><span>&#128205;</span><span>▲▲▲</span><span>97%</span></div>
+    </div>
+    <div class="app-bar">
+      <div class="back">&#8592;</div>
+      <div style="flex:1">
+        <div class="app-bar-title">Verifikasi Lokasi</div>
+        <span class="app-bar-sub">Plot A3 — Desa Cikaret</span>
+      </div>
+      <div class="app-icon">&#128260;</div>
+    </div>
+
+    <div class="screen-body">
+      <div class="scroll">
+
+        <!-- Map -->
+        <div class="card" style="padding:8px">
+          <div class="map-area">
+            <div class="map-grid"></div>
+            <!-- SVG polygon + pin -->
+            <svg viewBox="0 0 351 196" style="position:absolute;inset:0;width:100%;height:100%">
+              <!-- Plot polygon (green, semi-transparent) -->
+              <polygon points="80,40 200,30 250,80 230,160 120,170 60,120"
+                fill="rgba(67,160,71,0.25)" stroke="#2E7D32" stroke-width="2.5" stroke-dasharray="0"/>
+              <!-- Polygon corner points -->
+              <circle cx="80"  cy="40"  r="4" fill="#2E7D32"/>
+              <circle cx="200" cy="30"  r="4" fill="#2E7D32"/>
+              <circle cx="250" cy="80"  r="4" fill="#2E7D32"/>
+              <circle cx="230" cy="160" r="4" fill="#2E7D32"/>
+              <circle cx="120" cy="170" r="4" fill="#2E7D32"/>
+              <circle cx="60"  cy="120" r="4" fill="#2E7D32"/>
+              <!-- Officer location (inside polygon) -->
+              <circle cx="155" cy="100" r="10" fill="rgba(21,101,192,0.25)" stroke="#1565C0" stroke-width="2"/>
+              <circle cx="155" cy="100" r="5"  fill="#1565C0"/>
+              <!-- Accuracy ring -->
+              <circle cx="155" cy="100" r="18" fill="none" stroke="#1565C0" stroke-width="1" stroke-dasharray="3,3" opacity="0.5"/>
+              <!-- Labels -->
+              <text x="155" y="90" text-anchor="middle" font-size="8" fill="#1565C0" font-weight="bold">Anda</text>
+              <text x="175" y="55" text-anchor="middle" font-size="9" fill="#1B5E20" font-weight="bold">Plot A3</text>
+              <text x="175" y="66" text-anchor="middle" font-size="8" fill="#4CAF50">2.4 ha</text>
+            </svg>
+            <!-- Map controls -->
+            <div class="map-label-row">
+              <div class="map-compass">N</div>
+              <div class="map-zoom">1:2500</div>
+            </div>
+            <!-- Map legend bottom -->
+            <div style="position:absolute;bottom:8px;left:8px;display:flex;gap:8px;z-index:5">
+              <div style="display:flex;align-items:center;gap:3px;background:white;padding:3px 7px;border-radius:6px;font-size:10px;font-weight:700;color:#2E7D32;box-shadow:0 1px 3px rgba(0,0,0,0.1)">
+                <div style="width:12px;height:12px;background:rgba(67,160,71,0.4);border:1.5px solid #2E7D32;border-radius:2px"></div> Batas Lahan
+              </div>
+              <div style="display:flex;align-items:center;gap:3px;background:white;padding:3px 7px;border-radius:6px;font-size:10px;font-weight:700;color:#1565C0;box-shadow:0 1px 3px rgba(0,0,0,0.1)">
+                <div style="width:8px;height:8px;background:#1565C0;border-radius:50%"></div> Lokasi Anda
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Status card: INSIDE polygon -->
+        <div class="loc-card inside">
+          <span class="loc-icon">&#10004;</span>
+          <div style="flex:1">
+            <div class="loc-main ok">Di dalam batas lahan</div>
+            <div class="loc-sub">Anda berada 42m dari titik tengah Plot A3</div>
+          </div>
+          <span class="badge bg-green">&#10003; Valid</span>
+        </div>
+
+        <!-- GPS metrics -->
+        <div class="card">
+          <div class="card-hdr"><span class="card-icon">&#128204;</span> Metrik GPS</div>
+          <div class="info-row">
+            <span class="info-key">Koordinat saat ini</span>
+            <span class="info-val">-6.9147°, 107.6098°</span>
+          </div>
+          <div class="info-row">
+            <span class="info-key">Akurasi</span>
+            <span class="info-val"><span style="color:#2E7D32">8 m</span> (baik)</span>
+          </div>
+          <div class="info-row">
+            <span class="info-key">Jarak dari tepi polygon</span>
+            <span class="info-val" style="color:#2E7D32">Di dalam — 38 m</span>
+          </div>
+          <div class="info-row">
+            <span class="info-key">Terakhir diperbarui</span>
+            <span class="info-val">2 detik lalu</span>
+          </div>
+          <div class="info-row">
+            <span class="info-key">Sumber polygon</span>
+            <span class="info-val"><span class="badge bg-blue">Mobile GPS</span></span>
+          </div>
+        </div>
+
+        <!-- Warning example: OUTSIDE -->
+        <div class="sec-label">Contoh: Di luar batas lahan</div>
+        <div class="loc-card far">
+          <span class="loc-icon">&#9888;</span>
+          <div style="flex:1">
+            <div class="loc-main warn">1.2 km dari batas lahan</div>
+            <div class="loc-sub">Transaksi direkam di luar lokasi plot. Alasan diperlukan.</div>
+          </div>
+        </div>
+        <div class="alert alert-warn">
+          <div class="alert-title warn">&#9888; Peringatan Geofence</div>
+          <div class="alert-body">Anda berada 1.2 km dari Plot A3. Jika transaksi terjadi di gudang, pilih lokasi "Di Gudang". Transaksi tetap dapat dilanjutkan namun akan ditandai untuk ditinjau admin.</div>
+        </div>
+
+      </div>
+      <div class="bottom-bar">
+        <div class="btn btn-primary">&#10003; Lokasi Dikonfirmasi — Lanjutkan</div>
+      </div>
+    </div>
+  </div>
+  <div class="home-bar-wrap"><div class="home-bar"></div></div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     SCREEN 4 — FRAUD CHECK WARNINGS & HARD BLOCKS
+═══════════════════════════════════════════════════════════ -->
+<div class="phone-wrap">
+  <div class="screen-label"><div class="snum">4</div> Fraud Checks — Warnings &amp; Blocks</div>
+  <div class="phone">
+  <div class="phone-inner" style="position:relative">
+    <div class="status-bar">
+      <span>09:45</span>
+      <div class="s-icons"><span>▲▲▲</span><span>WiFi</span><span>97%</span></div>
+    </div>
+    <div class="app-bar">
+      <div class="back">&#8592;</div>
+      <div class="app-bar-title">Pemeriksaan Penipuan</div>
+    </div>
+
+    <!-- Background: dimmed form -->
+    <div class="screen-body" style="opacity:0.25;pointer-events:none">
+      <div class="scroll">
+        <div class="card"><div style="height:30px;background:#EEE;border-radius:6px"></div></div>
+        <div class="card"><div style="height:60px;background:#EEE;border-radius:6px"></div></div>
+        <div class="card"><div style="height:80px;background:#EEE;border-radius:6px"></div></div>
+      </div>
+    </div>
+
+    <!-- ── WARNING bottom sheet ── -->
+    <div class="modal-overlay">
+      <div class="modal-sheet">
+        <div class="modal-pill"></div>
+        <div class="modal-title">&#9888; Peringatan Ditemukan</div>
+        <div class="modal-sub">3 item memerlukan konfirmasi Anda sebelum melanjutkan</div>
+
+        <div class="check-item warn">
+          <span class="ci-icon">&#128178;</span>
+          <div class="ci-text">
+            <div class="ci-title warn">Harga Di Bawah Referensi</div>
+            <div class="ci-desc">Rp 18.000/kg adalah 10% di bawah harga referensi hari ini (Rp 20.000/kg). Mohon berikan alasan.</div>
+          </div>
+        </div>
+
+        <div class="check-item warn">
+          <span class="ci-icon">&#128205;</span>
+          <div class="ci-text">
+            <div class="ci-title warn">Transaksi Di Luar Jam Kerja</div>
+            <div class="ci-desc">Waktu pengiriman (18:32 WIB) di luar jam operasional normal (07:00–17:00).</div>
+          </div>
+        </div>
+
+        <div class="check-item ok">
+          <span class="ci-icon">&#10004;</span>
+          <div class="ci-text">
+            <div class="ci-title ok">Kuantitas Plausibel</div>
+            <div class="ci-desc">380 kg berada dalam kapasitas hasil yang diharapkan untuk 480 tanaman.</div>
+          </div>
+        </div>
+
+        <div class="btn-row" style="margin-top:12px">
+          <div class="btn btn-outline btn-sm" style="flex:1;text-align:center;padding:11px">Batalkan</div>
+          <div class="btn btn-warn btn-sm" style="flex:1;text-align:center;padding:11px">Lanjutkan &#8594;</div>
+        </div>
+
+        <!-- Hard block preview -->
+        <div class="divider" style="margin:14px 0 10px"></div>
+        <div class="sec-label" style="text-align:center">— Contoh Hard Block —</div>
+
+        <div class="check-item err">
+          <span class="ci-icon">&#128683;</span>
+          <div class="ci-text">
+            <div class="ci-title err">Kuantitas Melebihi Kapasitas</div>
+            <div class="ci-desc"><strong>3.200 kg</strong> melebihi 2x kapasitas plot (maks ~1.440 kg). Transaksi diblokir.</div>
+          </div>
+        </div>
+
+        <div class="check-item err">
+          <span class="ci-icon">&#128683;</span>
+          <div class="ci-text">
+            <div class="ci-title err">Stok Gudang Tidak Cukup</div>
+            <div class="ci-desc">Penjualan <strong>500 kg</strong> melebihi stok tersedia <strong>320 kg</strong> di gudang ini.</div>
+          </div>
+        </div>
+
+        <div class="btn btn-grey" style="margin-top:10px;opacity:0.6">Tutup — Perbaiki Data</div>
+      </div>
+    </div>
+
+  </div>
+  <div class="home-bar-wrap"><div class="home-bar"></div></div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     SCREEN 5 — FARMER CONFIRMATION LINK FLOW
+═══════════════════════════════════════════════════════════ -->
+<div class="phone-wrap">
+  <div class="screen-label"><div class="snum">5</div> Farmer Confirmation Flow</div>
+  <div class="phone">
+  <div class="phone-inner">
+    <div class="status-bar">
+      <span>09:46</span>
+      <div class="s-icons"><span>▲▲▲</span><span>WiFi</span><span>97%</span></div>
+    </div>
+    <div class="app-bar">
+      <div class="back">&#8592;</div>
+      <div style="flex:1">
+        <div class="app-bar-title">Konfirmasi Petani</div>
+        <span class="app-bar-sub">Menunggu konfirmasi Budi Waluyo</span>
+      </div>
+    </div>
+
+    <div class="screen-body">
+      <div class="scroll">
+
+        <!-- Status header -->
+        <div style="background:white;border-radius:14px;padding:14px;text-align:center;box-shadow:0 1px 4px rgba(0,0,0,0.07)">
+          <div style="font-size:40px;margin-bottom:8px">&#128386;</div>
+          <div style="font-size:15px;font-weight:800;color:#1B5E20">Menunggu Konfirmasi</div>
+          <div style="font-size:12px;color:#888;margin-top:4px">Link OTP telah dikirim ke petani</div>
+          <div style="margin-top:10px">
+            <span class="badge bg-amber">Berlaku 30 menit</span>
+          </div>
+          <!-- countdown -->
+          <div style="font-size:26px;font-weight:800;color:#E65100;margin-top:8px">28:41</div>
+        </div>
+
+        <!-- Flow steps -->
+        <div class="card">
+          <div class="card-hdr"><span class="card-icon">&#9654;</span> Alur Konfirmasi</div>
+
+          <div class="flow-step">
+            <div class="flow-icon fi-green">&#128203;</div>
+            <div class="flow-content">
+              <div class="flow-title">1. Petugas Mencatat Transaksi</div>
+              <div class="flow-desc">Data pembelian, bukti, dan tanda tangan direkam oleh petugas KTH di lapangan.</div>
+            </div>
+          </div>
+          <div class="flow-arrow">&#8595;</div>
+
+          <div class="flow-step">
+            <div class="flow-icon fi-blue">&#128241;</div>
+            <div class="flow-content">
+              <div class="flow-title">2. Sistem Kirim OTP via SMS</div>
+              <div class="flow-desc">Kode 6-digit dikirim ke <strong>0812-34xx-7890</strong>. Petani harus memasukkan kode untuk konfirmasi.</div>
+            </div>
+          </div>
+          <div class="flow-arrow">&#8595;</div>
+
+          <div class="flow-step">
+            <div class="flow-icon fi-amber">&#128241;</div>
+            <div class="flow-content">
+              <div class="flow-title">3. Petani Buka Halaman Konfirmasi</div>
+              <div class="flow-desc">Link unik terbuka di browser petani. Tidak perlu instal aplikasi.</div>
+            </div>
+          </div>
+          <div class="flow-arrow">&#8595;</div>
+
+          <div class="flow-step">
+            <div class="flow-icon fi-purple">&#10004;</div>
+            <div class="flow-content">
+              <div class="flow-title">4. Petani Konfirmasi atau Sanggah</div>
+              <div class="flow-desc">Jika dikonfirmasi → status menjadi "Terverifikasi petani". Jika disanggah → admin menerima peringatan segera.</div>
+            </div>
+          </div>
+          <div class="flow-arrow">&#8595;</div>
+
+          <div class="flow-step">
+            <div class="flow-icon fi-teal">&#128274;</div>
+            <div class="flow-content">
+              <div class="flow-title">5. Admin Finalisasi</div>
+              <div class="flow-desc">Admin memverifikasi semua pemeriksaan telah lolos, lalu mengunci catatan sebagai "Diverifikasi".</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Delivery info -->
+        <div class="card">
+          <div class="card-hdr"><span class="card-icon">&#128232;</span> Detail Pengiriman</div>
+          <div class="info-row">
+            <span class="info-key">Nomor HP</span>
+            <span class="info-val">0812-34••-7890</span>
+          </div>
+          <div class="info-row">
+            <span class="info-key">Status SMS</span>
+            <span class="info-val"><span class="badge bg-green">Terkirim 09:45</span></span>
+          </div>
+          <div class="info-row">
+            <span class="info-key">Kadaluarsa OTP</span>
+            <span class="info-val" style="color:#E65100">09:46 + 30 mnt</span>
+          </div>
+          <div class="info-row">
+            <span class="info-key">Percobaan tersisa</span>
+            <span class="info-val">3 dari 3</span>
+          </div>
+        </div>
+
+      </div>
+      <div class="bottom-bar">
+        <div class="btn-row">
+          <div class="btn btn-outline btn-sm" style="flex:1;text-align:center">Kirim Ulang SMS</div>
+          <div class="btn btn-grey btn-sm" style="flex:1;text-align:center">Lewati (Tandai)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="home-bar-wrap"><div class="home-bar"></div></div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     SCREEN 6 — FARMER CONFIRMATION PAGE
+═══════════════════════════════════════════════════════════ -->
+<div class="phone-wrap">
+  <div class="screen-label"><div class="snum">6</div> Farmer Confirmation Page</div>
+  <div class="phone">
+  <div class="phone-inner">
+    <div class="status-bar" style="background:#1565C0">
+      <span>09:47</span>
+      <div class="s-icons"><span>▲▲▲</span><span>4G</span><span>82%</span></div>
+    </div>
+
+    <!-- KTH brand bar (web view) -->
+    <div style="background:#1565C0;padding:10px 14px 14px;flex-shrink:0;color:white">
+      <div style="font-size:11px;opacity:0.7;margin-bottom:2px">traceability-fairventures.org</div>
+      <div style="font-size:17px;font-weight:800">Konfirmasi Transaksi</div>
+      <div style="font-size:11px;opacity:0.8;margin-top:2px">Silakan periksa detail di bawah dan konfirmasi</div>
+    </div>
+
+    <div class="screen-body">
+      <div class="scroll">
+
+        <!-- OTP entry -->
+        <div class="card" style="text-align:center">
+          <div class="card-hdr" style="justify-content:center"><span class="card-icon">&#128272;</span> Masukkan Kode OTP</div>
+          <div style="font-size:11px;color:#888;margin-bottom:8px">Kode 6-digit dikirim ke <strong>0812-34••-7890</strong></div>
+          <div class="otp-row">
+            <div class="otp-cell filled">4</div>
+            <div class="otp-cell filled">8</div>
+            <div class="otp-cell filled">2</div>
+            <div class="otp-cell filled">1</div>
+            <div class="otp-cell empty">_</div>
+            <div class="otp-cell empty">_</div>
+          </div>
+          <div style="font-size:11px;color:#BBBBBB;margin-top:6px">Masukkan 2 digit terakhir...</div>
+        </div>
+
+        <!-- Farmer identity check -->
+        <div class="farmer-card" style="background:#EBF5FF;border-color:#BBDEFB">
+          <div class="farmer-av" style="background:#1565C0;font-size:16px">BW</div>
+          <div style="flex:1">
+            <div style="font-size:13px;font-weight:800;color:#0D47A1">Budi Waluyo</div>
+            <div class="farmer-sub">NIK: ••••••3421</div>
+            <div class="farmer-meta"><span>&#128205;</span> Desa Cikaret, Kabupaten Garut</div>
+          </div>
+        </div>
+
+        <!-- Transaction summary for farmer -->
+        <div class="card">
+          <div class="card-hdr"><span class="card-icon">&#128203;</span> Ringkasan Transaksi</div>
+
+          <div class="sum-row">
+            <span class="sum-key">Tanggal</span>
+            <span class="sum-val">10 Maret 2026</span>
+          </div>
+          <div class="sum-row">
+            <span class="sum-key">Plot Lahan</span>
+            <span class="sum-val">Plot A3 — Desa Cikaret</span>
+          </div>
+          <div class="sum-row">
+            <span class="sum-key">Komoditas</span>
+            <span class="sum-val">Kakao — Grade A</span>
+          </div>
+          <div class="sum-row">
+            <span class="sum-key">Berat</span>
+            <span class="sum-val">380 kg</span>
+          </div>
+          <div class="sum-row">
+            <span class="sum-key">Harga per kg</span>
+            <span class="sum-val">Rp 18.000</span>
+          </div>
+          <div class="sum-row">
+            <span class="sum-key">Potongan</span>
+            <span class="sum-val" style="color:#C62828">- Rp 340.000</span>
+          </div>
+          <div class="divider"></div>
+          <div class="sum-row">
+            <span class="sum-key" style="font-weight:800;color:#1A1A1A">Total Diterima</span>
+            <span class="sum-total" style="font-size:17px">Rp 6.500.000</span>
+          </div>
+          <div class="sum-row">
+            <span class="sum-key">Rekening tujuan</span>
+            <span class="sum-val">BRI ••••4521</span>
+          </div>
+        </div>
+
+        <!-- Question -->
+        <div style="text-align:center;padding:6px 10px">
+          <div style="font-size:14px;font-weight:800;color:#1A1A1A">Apakah data di atas sudah benar?</div>
+          <div style="font-size:12px;color:#888;margin-top:4px">Pastikan jumlah dan rekening Anda sesuai sebelum mengkonfirmasi.</div>
+        </div>
+
+      </div>
+      <div class="bottom-bar">
+        <div class="conf-btn-row">
+          <div class="conf-btn conf-dispute">&#9888; Sanggah</div>
+          <div class="conf-btn conf-confirm">&#10004; Konfirmasi</div>
+        </div>
+        <div style="font-size:10px;color:#BBBBBB;text-align:center;margin-top:8px">Konfirmasi Anda tercatat secara permanen &amp; tidak dapat dibatalkan</div>
+      </div>
+    </div>
+  </div>
+  <div class="home-bar-wrap"><div class="home-bar"></div></div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     SCREEN 7 — IN-APP VERIFICATION TIMELINE
+═══════════════════════════════════════════════════════════ -->
+<div class="phone-wrap">
+  <div class="screen-label"><div class="snum">7</div> In-App Verification Timeline</div>
+  <div class="phone">
+  <div class="phone-inner">
+    <div class="status-bar">
+      <span>10:05</span>
+      <div class="s-icons"><span>▲▲▲</span><span>WiFi</span><span>95%</span></div>
+    </div>
+    <div class="app-bar">
+      <div class="back">&#8592;</div>
+      <div style="flex:1">
+        <div class="app-bar-title">Riwayat Verifikasi</div>
+        <span class="app-bar-sub">TXN-2026-03-0042</span>
+      </div>
+      <div class="app-icon">&#128196;</div>
+    </div>
+
+    <div class="screen-body">
+      <div class="scroll">
+
+        <!-- Transaction header -->
+        <div class="card" style="background:linear-gradient(135deg,#F1F8F0,#E8F5E9);border:1.5px solid #C8E6C9">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
+            <div>
+              <div style="font-size:15px;font-weight:800;color:#1B5E20">Pembelian Kakao</div>
+              <div style="font-size:11px;color:#555;margin-top:2px">Budi Waluyo &nbsp;·&nbsp; Plot A3</div>
+            </div>
+            <span class="badge bg-amber">&#8987; Menunggu Admin</span>
+          </div>
+          <div style="display:flex;gap:14px">
+            <div style="text-align:center">
+              <div style="font-size:14px;font-weight:800;color:#1B5E20">380 kg</div>
+              <div style="font-size:10px;color:#888">Berat</div>
+            </div>
+            <div style="text-align:center">
+              <div style="font-size:14px;font-weight:800;color:#1B5E20">Rp 6,5 jt</div>
+              <div style="font-size:10px;color:#888">Pembayaran</div>
+            </div>
+            <div style="text-align:center">
+              <div style="font-size:14px;font-weight:800;color:#1B5E20">Grade A</div>
+              <div style="font-size:10px;color:#888">Kualitas</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Timeline -->
+        <div class="card">
+          <div class="card-hdr"><span class="card-icon">&#128337;</span> Riwayat Langkah</div>
+
+          <div class="tl-item">
+            <div class="tl-col">
+              <div class="tl-dot done">&#128203;</div>
+              <div class="tl-line done"></div>
+            </div>
+            <div class="tl-content">
+              <div class="tl-title">Transaksi Dibuat</div>
+              <div class="tl-by">Petugas KTH-007</div>
+              <div class="tl-time">10 Mar 2026 &nbsp;·&nbsp; 09:41 WIB</div>
+              <div class="chip-row" style="margin-top:4px">
+                <span class="chip">380 kg</span>
+                <span class="chip">Grade A</span>
+                <span class="chip">Rp 18.000/kg</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="tl-item">
+            <div class="tl-col">
+              <div class="tl-dot done">&#128205;</div>
+              <div class="tl-line done"></div>
+            </div>
+            <div class="tl-content">
+              <div class="tl-title">Lokasi GPS Diverifikasi</div>
+              <div class="tl-by">Sistem otomatis</div>
+              <div class="tl-time">09:41 WIB &nbsp;·&nbsp; Otomatis</div>
+              <div class="tl-detail">Di dalam batas Plot A3. Akurasi 8m.</div>
+            </div>
+          </div>
+
+          <div class="tl-item">
+            <div class="tl-col">
+              <div class="tl-dot done">&#128247;</div>
+              <div class="tl-line done"></div>
+            </div>
+            <div class="tl-content">
+              <div class="tl-title">3 Bukti Diunggah</div>
+              <div class="tl-by">Petugas KTH-007</div>
+              <div class="tl-time">09:43 WIB</div>
+              <div class="tl-detail">Nilai pembelian · Potongan · Pembayaran</div>
+            </div>
+          </div>
+
+          <div class="tl-item">
+            <div class="tl-col">
+              <div class="tl-dot done">&#9999;</div>
+              <div class="tl-line done"></div>
+            </div>
+            <div class="tl-content">
+              <div class="tl-title">Tanda Tangan Petani Ditangkap</div>
+              <div class="tl-by">Budi Waluyo (di tempat)</div>
+              <div class="tl-time">09:42 WIB</div>
+            </div>
+          </div>
+
+          <div class="tl-item">
+            <div class="tl-col">
+              <div class="tl-dot done">&#9888;</div>
+              <div class="tl-line done"></div>
+            </div>
+            <div class="tl-content">
+              <div class="tl-title">Peringatan Harga Dikonfirmasi</div>
+              <div class="tl-by">Petugas KTH-007</div>
+              <div class="tl-time">09:45 WIB</div>
+              <div class="tl-detail">Harga Rp 18.000 (10% di bawah referensi). Petugas mengakui dan melanjutkan.</div>
+            </div>
+          </div>
+
+          <div class="tl-item">
+            <div class="tl-col">
+              <div class="tl-dot done">&#128241;</div>
+              <div class="tl-line done"></div>
+            </div>
+            <div class="tl-content">
+              <div class="tl-title">OTP Konfirmasi Petani Terkirim</div>
+              <div class="tl-by">Sistem otomatis</div>
+              <div class="tl-time">09:46 WIB</div>
+            </div>
+          </div>
+
+          <div class="tl-item">
+            <div class="tl-col">
+              <div class="tl-dot done">&#10004;</div>
+              <div class="tl-line pend"></div>
+            </div>
+            <div class="tl-content">
+              <div class="tl-title">Dikonfirmasi Petani</div>
+              <div class="tl-by">Budi Waluyo via SMS</div>
+              <div class="tl-time">09:58 WIB</div>
+              <div class="tl-detail" style="color:#2E7D32">Petani mengkonfirmasi transaksi valid.</div>
+            </div>
+          </div>
+
+          <div class="tl-item">
+            <div class="tl-col">
+              <div class="tl-dot active">&#128101;</div>
+              <div class="tl-line pend"></div>
+            </div>
+            <div class="tl-content">
+              <div class="tl-title" style="color:#E65100">Menunggu Verifikasi Admin</div>
+              <div class="tl-by">Belum ditugaskan</div>
+              <div class="tl-time">Menunggu...</div>
+            </div>
+          </div>
+
+          <div class="tl-item">
+            <div class="tl-col">
+              <div class="tl-dot pend">&#128274;</div>
+            </div>
+            <div class="tl-content">
+              <div class="tl-title" style="color:#BBBBBB">Catatan Dikunci (Terverifikasi)</div>
+              <div class="tl-by" style="color:#CCCCCC">Menunggu admin</div>
+              <div class="tl-time">—</div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+  </div>
+  <div class="home-bar-wrap"><div class="home-bar"></div></div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     SCREEN 8 — VERIFIED READ-ONLY LOCKED STATE
+═══════════════════════════════════════════════════════════ -->
+<div class="phone-wrap">
+  <div class="screen-label"><div class="snum">8</div> Verified — Read-Only Locked State</div>
+  <div class="phone">
+  <div class="phone-inner">
+    <div class="status-bar">
+      <span>14:22</span>
+      <div class="s-icons"><span>▲▲▲</span><span>WiFi</span><span>88%</span></div>
+    </div>
+    <div class="app-bar">
+      <div class="back">&#8592;</div>
+      <div style="flex:1">
+        <div class="app-bar-title">Detail Pembelian</div>
+        <span class="app-bar-sub">TXN-2026-03-0042</span>
+      </div>
+      <div class="app-icon">&#128196;</div>
+    </div>
+
+    <!-- Verified banner -->
+    <div class="verified-banner">
+      <span class="vb-icon">&#128274;</span>
+      <div style="flex:1">
+        <div class="vb-title">Terverifikasi &amp; Terkunci</div>
+        <div class="vb-sub">Diverifikasi oleh Admin Suharto · 10 Mar 2026 14:18 WIB</div>
+      </div>
+      <span class="badge bg-green" style="background:rgba(255,255,255,0.2);color:white;border:1px solid rgba(255,255,255,0.4)">&#10003; Final</span>
+    </div>
+
+    <div class="screen-body">
+      <div class="scroll">
+
+        <!-- Locked notice -->
+        <div class="alert alert-ok">
+          <div class="alert-title ok">&#128274; Catatan Hanya Bisa Dibaca</div>
+          <div class="alert-body">Catatan ini telah diverifikasi dan dikunci. Semua kolom bersifat read-only. Hubungi administrator untuk perubahan.</div>
+        </div>
+
+        <!-- Transaction details (read-only) -->
+        <div class="card">
+          <div class="card-hdr"><span class="card-icon">&#128203;</span> Detail Transaksi</div>
+
+          <div class="field">
+            <div class="flabel">Tanggal</div>
+            <div class="read-only-overlay">10 Maret 2026 <span class="lock-icon">&#128274;</span></div>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <div class="flabel">Petani</div>
+              <div class="read-only-overlay" style="font-size:12px">Budi Waluyo <span class="lock-icon">&#128274;</span></div>
+            </div>
+            <div class="field">
+              <div class="flabel">Plot</div>
+              <div class="read-only-overlay" style="font-size:12px">Plot A3 <span class="lock-icon">&#128274;</span></div>
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <div class="flabel">Komoditas</div>
+              <div class="read-only-overlay" style="font-size:12px">Kakao <span class="lock-icon">&#128274;</span></div>
+            </div>
+            <div class="field">
+              <div class="flabel">Grade</div>
+              <div class="read-only-overlay" style="font-size:12px">Grade A <span class="lock-icon">&#128274;</span></div>
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <div class="flabel">Kuantitas</div>
+              <div class="read-only-overlay" style="font-size:12px">380 kg <span class="lock-icon">&#128274;</span></div>
+            </div>
+            <div class="field">
+              <div class="flabel">Harga/kg</div>
+              <div class="read-only-overlay" style="font-size:12px">Rp 18.000 <span class="lock-icon">&#128274;</span></div>
+            </div>
+          </div>
+          <div class="field">
+            <div class="flabel">Pembayaran Bersih</div>
+            <div class="read-only-overlay" style="font-weight:800;color:#1B5E20">Rp 6.500.000 <span class="lock-icon">&#128274;</span></div>
+          </div>
+        </div>
+
+        <!-- Verification checklist -->
+        <div class="card">
+          <div class="card-hdr"><span class="card-icon">&#9989;</span> Semua Pemeriksaan Lolos</div>
+          <div class="check-item ok" style="margin-bottom:4px">
+            <span class="ci-icon">&#128205;</span>
+            <div class="ci-text"><div class="ci-title ok">GPS dalam batas lahan</div></div>
+          </div>
+          <div class="check-item ok" style="margin-bottom:4px">
+            <span class="ci-icon">&#128247;</span>
+            <div class="ci-text"><div class="ci-title ok">3 bukti foto diunggah</div></div>
+          </div>
+          <div class="check-item ok" style="margin-bottom:4px">
+            <span class="ci-icon">&#9999;</span>
+            <div class="ci-text"><div class="ci-title ok">Tanda tangan petani diambil</div></div>
+          </div>
+          <div class="check-item ok" style="margin-bottom:4px">
+            <span class="ci-icon">&#128241;</span>
+            <div class="ci-text"><div class="ci-title ok">Dikonfirmasi petani via OTP</div></div>
+          </div>
+          <div class="check-item warn" style="margin-bottom:0">
+            <span class="ci-icon">&#9888;</span>
+            <div class="ci-text"><div class="ci-title warn">Peringatan harga diakui (10% bawah referensi)</div></div>
+          </div>
+        </div>
+
+        <!-- Audit trail -->
+        <div class="card">
+          <div class="card-hdr"><span class="card-icon">&#128337;</span> Jejak Audit</div>
+          <div class="audit-entry">
+            <div class="audit-dot" style="background:#2E7D32"></div>
+            <div class="audit-content">
+              <div class="audit-action">Dikunci &amp; Diverifikasi</div>
+              <div class="audit-meta">Admin Suharto &nbsp;·&nbsp; 14:18 WIB &nbsp;·&nbsp; 10 Mar 2026</div>
+            </div>
+          </div>
+          <div class="audit-entry">
+            <div class="audit-dot" style="background:#2E7D32"></div>
+            <div class="audit-content">
+              <div class="audit-action">Dikonfirmasi Petani</div>
+              <div class="audit-meta">Budi Waluyo via SMS &nbsp;·&nbsp; 09:58 WIB</div>
+            </div>
+          </div>
+          <div class="audit-entry">
+            <div class="audit-dot" style="background:#1565C0"></div>
+            <div class="audit-content">
+              <div class="audit-action">Dibuat oleh Petugas</div>
+              <div class="audit-meta">KTH-007 &nbsp;·&nbsp; 09:41 WIB &nbsp;·&nbsp; IP 103.x.x.x</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Locked action bar -->
+      <div class="bottom-bar">
+        <div class="btn-row">
+          <div class="btn-disabled" style="flex:1;padding:13px;border-radius:11px;font-size:13px;font-weight:800">&#128274; Edit (Terkunci)</div>
+          <div class="btn-disabled" style="flex:1;padding:13px;border-radius:11px;font-size:13px;font-weight:800">&#128274; Hapus (Terkunci)</div>
+        </div>
+        <div class="btn btn-outline" style="margin-top:8px;font-size:13px">&#128196; Cetak / Ekspor PDF</div>
+      </div>
+    </div>
+  </div>
+  <div class="home-bar-wrap"><div class="home-bar"></div></div>
+  </div>
+</div>
+
+
+</div><!-- end grid -->
+
+<div style="margin-top:56px;padding:20px 0;border-top:1px solid #C8D8C8;color:#8AAA8A;font-size:12px;text-align:center">
+  Traceability App &nbsp;·&nbsp; Fraud Prevention Wireframes &nbsp;·&nbsp; 8 Screens &nbsp;·&nbsp; Flutter / GetX / Laravel / MariaDB
+</div>
+
+<script>
+// ── Load html2canvas dynamically ──────────────────────────────────────────
+(function loadHtml2Canvas() {
+  const s = document.createElement('script');
+  s.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+  s.onload  = () => initDownloadButtons();
+  s.onerror = () => {
+    document.getElementById('dl-status').textContent = 'Offline — use Print/PDF instead';
+    document.getElementById('dl-status').style.color = '#E65100';
+    document.getElementById('dl-all-btn').disabled = true;
+    document.querySelectorAll('.dl-btn-single').forEach(b => b.disabled = true);
+  };
+  document.head.appendChild(s);
+})();
+
+// ── Screen metadata ───────────────────────────────────────────────────────
+const SCREENS = [
+  { name: '01-transaction-entry',          label: 'Transaction Entry' },
+  { name: '02-evidence-capture',           label: 'Evidence Capture' },
+  { name: '03-gps-geofence-validation',    label: 'GPS & Geofence Validation' },
+  { name: '04-fraud-checks-warnings',      label: 'Fraud Check Warnings & Blocks' },
+  { name: '05-farmer-confirmation-flow',   label: 'Farmer Confirmation Flow' },
+  { name: '06-farmer-confirmation-page',   label: 'Farmer Confirmation Page' },
+  { name: '07-verification-timeline',      label: 'Verification Timeline' },
+  { name: '08-verified-locked-state',      label: 'Verified Locked State' },
+];
+
+// ── Add per-screen download buttons once DOM ready ────────────────────────
+function initDownloadButtons() {
+  document.querySelectorAll('.phone-wrap').forEach((wrap, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'dl-btn-single';
+    btn.id = 'dl-single-' + i;
+    btn.innerHTML = '&#11123; Download PNG';
+    btn.title = 'Download ' + SCREENS[i].label;
+    btn.onclick = () => downloadScreen(i);
+    wrap.appendChild(btn);
+  });
+  document.getElementById('dl-status').textContent = 'Ready';
+  setTimeout(() => { document.getElementById('dl-status').textContent = ''; }, 1800);
+}
+
+// ── Capture one phone element and trigger PNG download ────────────────────
+async function downloadScreen(index) {
+  const phones  = document.querySelectorAll('.phone');
+  const singleBtn = document.getElementById('dl-single-' + index);
+  const allBtn    = document.getElementById('dl-all-btn');
+  const status    = document.getElementById('dl-status');
+
+  if (singleBtn) { singleBtn.innerHTML = '...'; singleBtn.disabled = true; }
+  status.textContent = 'Capturing screen ' + (index + 1) + '...';
+  status.style.color = '#2E7D32';
+
+  try {
+    const canvas = await html2canvas(phones[index], {
+      scale: 2.5,
+      useCORS: true,
+      allowTaint: true,
+      backgroundColor: '#111111',
+      logging: false,
+      removeContainer: true,
+    });
+
+    const link = document.createElement('a');
+    link.download = SCREENS[index].name + '.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+
+    status.textContent = '&#10003; Saved: ' + SCREENS[index].name + '.png';
+  } catch (err) {
+    status.textContent = 'Failed: ' + err.message;
+    status.style.color = '#C62828';
+  }
+
+  if (singleBtn) { singleBtn.innerHTML = '&#11123; Download PNG'; singleBtn.disabled = false; }
+}
+
+// ── Download all 8 screens sequentially ──────────────────────────────────
+async function downloadAll() {
+  if (typeof html2canvas === 'undefined') {
+    alert('html2canvas not loaded yet. Please wait a moment and try again, or use Print/PDF.');
+    return;
+  }
+
+  const allBtn = document.getElementById('dl-all-btn');
+  const status = document.getElementById('dl-status');
+  allBtn.disabled = true;
+
+  // Disable individual buttons during batch download
+  document.querySelectorAll('.dl-btn-single').forEach(b => b.disabled = true);
+
+  for (let i = 0; i < SCREENS.length; i++) {
+    allBtn.innerHTML = '&#11123; Downloading ' + (i + 1) + ' / ' + SCREENS.length + '...';
+    await downloadScreen(i);
+    // Small pause so browser can process the download trigger
+    await new Promise(r => setTimeout(r, 700));
+  }
+
+  allBtn.innerHTML = '&#11123; Download All 8 Screens (PNG)';
+  allBtn.disabled = false;
+  document.querySelectorAll('.dl-btn-single').forEach(b => b.disabled = false);
+  status.textContent = '&#10003; All 8 screens downloaded!';
+  setTimeout(() => { status.textContent = ''; }, 3000);
+}
+</script>
+
+</body>
+</html>
