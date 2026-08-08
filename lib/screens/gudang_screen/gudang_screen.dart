@@ -8,6 +8,7 @@ import 'package:traceability_app/screens/gudang_screen/gudang_screen_widget/guda
 import 'package:traceability_app/screens/gudang_screen/gudang_screen_widget/gudang_header_section_widget.dart';
 import 'package:traceability_app/screens/gudang_screen/gudang_screen_widget/gudang_offline_banner_widget.dart';
 import 'package:traceability_app/screens/widgets/bottom_navigation_bar_widget.dart';
+import 'package:traceability_app/screens/widgets/stale_data_banner.dart';
 import 'package:traceability_app/themes/theme_color.dart';
 import 'package:traceability_app/themes/theme_text.dart';
 import 'package:traceability_app/utils/controller_registry.dart';
@@ -97,6 +98,15 @@ class GudangScreen extends StatelessWidget {
                   isID: isID,
                   isSyncing: isSyncing,
                   onSync: () => c.syncNow(context),
+                )
+              else
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                  child: StaleDataBanner(
+                    outcome: c.refreshOutcome.value,
+                    isID: isID,
+                    onRetry: c.load,
+                  ),
                 ),
               const SizedBox(height: 8),
               GudangHeaderSection(

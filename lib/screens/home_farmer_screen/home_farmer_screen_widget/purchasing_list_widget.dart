@@ -7,9 +7,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:get/get.dart';
 import 'package:traceability_app/models/api/pending_outbox.dart';
+import 'package:traceability_app/models/api/refresh_outcome.dart';
 import 'package:traceability_app/models/api/purchasing_api.dart';
 import 'package:traceability_app/models/get_purchasing_by_farmer_id.dart';
 import 'package:traceability_app/screens/widgets/pending_sync_badge.dart';
+import 'package:traceability_app/screens/widgets/stale_data_banner.dart';
 import 'package:traceability_app/services/language_service.dart';
 import 'package:traceability_app/themes/theme_text.dart';
 
@@ -34,6 +36,9 @@ class _PurchasingListWidgetState extends State<PurchasingListWidget> {
 
   /// Queued-but-not-uploaded purchasing ops, refreshed together with [_load].
   PendingIndex _pending = PendingIndex.empty;
+
+  /// Kenapa daftar ini berisi apa yang ditampilkan.
+  RefreshOutcome _refreshOutcome = RefreshOutcome.fresh;
 
   final _api = PurchasingApi();
 
@@ -79,7 +84,9 @@ class _PurchasingListWidgetState extends State<PurchasingListWidget> {
     _isOfflineView = !_isOnlineFrom(conn);
 
     // cached-first agar tetap tampil saat offline
-    final res = await _api.getPurchasingByFarmerIdCached(id);
+    final result = await _api.getPurchasingByFarmerIdCached(id);
+    _refreshOutcome = result.outcome;
+    final res = result.data;
     _lastSync = await _api.getPurchasingCacheTime(id);
 
     // Purchases with a queued change (e.g. a verification tapped offline) are
@@ -174,6 +181,12 @@ class _PurchasingListWidgetState extends State<PurchasingListWidget> {
                     ),
                   ],
                 ),
+              ),
+            if (!_isOfflineView)
+              StaleDataBanner(
+                outcome: _refreshOutcome,
+                isID: isID,
+                onRetry: _refresh,
               ),
             Row(
               children: [

@@ -1,3 +1,7 @@
+import 'package:dio/dio.dart';
+
+import 'package:traceability_app/models/api/session_monitor.dart';
+
 /// Why a cached-first read returned what it returned.
 ///
 /// The offline-first readers always hand back *something* — fresh data when the
@@ -39,4 +43,52 @@ class CachedResult<T> {
   bool get needsWarning =>
       outcome == RefreshOutcome.refreshFailed ||
       outcome == RefreshOutcome.unauthorized;
+}
+
+/// The one cached-first read shared by every API client.
+///
+/// Each client used to spell out the same four branches by hand — fresh, no
+/// connection, bad status, thrown error — and each of them ended in a bare
+/// `return cached`, which is how a rejected session turned into a screen that
+/// silently never updated. Routing them all through here means the
+/// classification is written once and is the same everywhere.
+///
+/// [request] runs inside the try, so an auth helper that throws on a missing
+/// token is treated as a failed refresh rather than crashing the screen.
+/// [emptyValue] supplies the "nothing cached either" result; it receives the
+/// outcome so callers can keep their existing status strings.
+Future<CachedResult<T>> readCachedFirst<T>({
+  required Future<bool> Function() isOnline,
+  required Future<Response<dynamic>> Function() request,
+  required Future<T> Function(Response<dynamic> resp) parseAndCache,
+  required Future<T?> Function() readCache,
+  required T Function(RefreshOutcome outcome) emptyValue,
+}) async {
+  Future<CachedResult<T>> fallback(RefreshOutcome outcome) async {
+    try {
+      final cached = await readCache();
+      return CachedResult(cached ?? emptyValue(outcome), outcome);
+    } catch (_) {
+      // A corrupt cache entry must not take the screen down with it.
+      return CachedResult(emptyValue(outcome), outcome);
+    }
+  }
+
+  if (!await isOnline()) return fallback(RefreshOutcome.offlineCache);
+
+  try {
+    final resp = await request();
+    if (resp.statusCode == 200) {
+      return CachedResult.fresh(await parseAndCache(resp));
+    }
+    // Clients set `validateStatus: (_) => true`, so a rejected session arrives
+    // here as an ordinary response rather than an exception.
+    return fallback(
+      SessionMonitor.isSessionRejection(resp.statusCode)
+          ? RefreshOutcome.unauthorized
+          : RefreshOutcome.refreshFailed,
+    );
+  } catch (_) {
+    return fallback(RefreshOutcome.refreshFailed);
+  }
 }

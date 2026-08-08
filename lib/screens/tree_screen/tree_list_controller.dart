@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:traceability_app/models/api/pending_outbox.dart';
+import 'package:traceability_app/models/api/refresh_outcome.dart';
 import 'package:traceability_app/models/api/tree_api.dart';
 import 'package:traceability_app/screens/widgets/pending_sync_badge.dart';
 import 'package:traceability_app/services/language_service.dart';
@@ -34,6 +35,9 @@ class TreeListController extends GetxController {
   /// Queued-but-not-uploaded ops for this plot, so the list can show them as
   /// rows (creates) and badge the rows that carry a pending change.
   final pending = PendingIndex.empty.obs;
+
+  /// Kenapa daftar ini berisi apa yang ditampilkan.
+  final refreshOutcome = RefreshOutcome.fresh.obs;
 
   final page = 1.obs;
   final pageSize = 10.obs;
@@ -120,12 +124,13 @@ class TreeListController extends GetxController {
 
     loadingRemote.value = true;
     try {
-      final res = await _api.getTreesByPlotIdCached(
+      final result = await _api.getTreesByPlotIdCached(
         plotId,
         perPage: 2000,
         search: search,
       );
-      final list = res.data ?? <gt.Datum>[];
+      refreshOutcome.value = result.outcome;
+      final list = result.data.data ?? <gt.Datum>[];
 
       list.sort((a, b) {
         final ad = a.plantingDate ?? DateTime.fromMillisecondsSinceEpoch(0);

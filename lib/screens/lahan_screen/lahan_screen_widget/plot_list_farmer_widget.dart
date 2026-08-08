@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:traceability_app/models/api/pending_outbox.dart';
+import 'package:traceability_app/models/api/refresh_outcome.dart';
 import 'package:traceability_app/models/api/plot_api.dart';
 import 'package:traceability_app/screens/widgets/pending_sync_badge.dart';
+import 'package:traceability_app/screens/widgets/stale_data_banner.dart';
 import 'package:traceability_app/services/language_service.dart';
 import 'package:traceability_app/themes/theme_color.dart';
 import 'package:traceability_app/themes/theme_text.dart';
@@ -40,6 +42,9 @@ class _PlotListFarmerWidgetState extends State<PlotListFarmerWidget> {
   /// Queued-but-not-uploaded plot ops, refreshed together with [_load].
   PendingIndex _pending = PendingIndex.empty;
 
+  /// Kenapa daftar ini berisi apa yang ditampilkan.
+  RefreshOutcome _refreshOutcome = RefreshOutcome.fresh;
+
   @override
   void initState() {
     super.initState();
@@ -67,7 +72,9 @@ class _PlotListFarmerWidgetState extends State<PlotListFarmerWidget> {
     }
 
     // cached-first → tetap tampil saat offline, auto-refresh cache saat online
-    final res = await _api.getPlotByFarmerIdCached(_farmerId!);
+    final result = await _api.getPlotByFarmerIdCached(_farmerId!);
+    _refreshOutcome = result.outcome;
+    final res = result.data;
     _lastSync = await _api.getPlotByFarmerCacheTime(_farmerId!);
 
     // Plots still sitting in the outbox are merged in so an offline edit (or a
@@ -156,6 +163,15 @@ class _PlotListFarmerWidgetState extends State<PlotListFarmerWidget> {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+              child: StaleDataBanner(
+                outcome: _refreshOutcome,
+                isID: isID,
+                onRetry: () => setState(() => _future = _load()),
+              ),
+            ),
+
             // small last-sync chip
             Padding(
               padding: const EdgeInsets.only(left: 16, right: 16, bottom: 6),

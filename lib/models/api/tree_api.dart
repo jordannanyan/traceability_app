@@ -11,6 +11,7 @@ import 'package:synchronized/synchronized.dart';
 
 import 'package:traceability_app/models/api/outbox_error.dart';
 import 'package:traceability_app/models/api/pending_outbox.dart';
+import 'package:traceability_app/models/api/refresh_outcome.dart';
 import 'package:traceability_app/models/get_trees.dart';
 import 'package:traceability_app/utils/utils.dart';
 import 'package:traceability_app/models/api/session_monitor.dart';
@@ -1039,43 +1040,51 @@ class TreeApi {
   }
 
   /// cached-first by plot id
-  Future<GetTrees> getTreesByPlotIdCached(
+  /// Cached-first, dengan alasan kenapa datanya seperti itu.
+  ///
+  /// Berbeda dari pembaca lain, request-nya lewat [getTrees] yang sudah
+  /// melempar `DioException` (lengkap dengan response) untuk non-200 — jadi
+  /// klasifikasinya diambil dari exception itu, bukan dari status respons.
+  Future<CachedResult<GetTrees>> getTreesByPlotIdCached(
     int plotId, {
     int page = 1,
     int perPage = 50,
     String? search,
   }) async {
-    final online = await _isOnline();
-    if (online) {
-      try {
-        final res = await getTrees(
-          plotId: plotId,
-          page: page,
-          perPage: perPage,
-          search: search,
-        );
-        await _savePlotCache(
-          plotId: plotId,
-          page: page,
-          perPage: perPage,
-          data: jsonDecode(getTreesToJson(res)),
-        );
-        return res;
-      } catch (_) {
-        final cached = await _loadPlotCacheModel(plotId, page, perPage);
-        if (cached != null) return cached;
-        return GetTrees(
-          currentPage: page,
-          data: [],
-          perPage: perPage,
-          total: 0,
-        );
-      }
+    Future<CachedResult<GetTrees>> fallback(RefreshOutcome outcome) async {
+      final cached = await _loadPlotCacheModel(plotId, page, perPage);
+      return CachedResult(
+        cached ??
+            GetTrees(currentPage: page, data: [], perPage: perPage, total: 0),
+        outcome,
+      );
     }
 
-    final cached = await _loadPlotCacheModel(plotId, page, perPage);
-    return cached ??
-        GetTrees(currentPage: page, data: [], perPage: perPage, total: 0);
+    if (!await _isOnline()) return fallback(RefreshOutcome.offlineCache);
+
+    try {
+      final res = await getTrees(
+        plotId: plotId,
+        page: page,
+        perPage: perPage,
+        search: search,
+      );
+      await _savePlotCache(
+        plotId: plotId,
+        page: page,
+        perPage: perPage,
+        data: jsonDecode(getTreesToJson(res)),
+      );
+      return CachedResult.fresh(res);
+    } on DioException catch (e) {
+      return fallback(
+        SessionMonitor.isSessionRejection(e.response?.statusCode)
+            ? RefreshOutcome.unauthorized
+            : RefreshOutcome.refreshFailed,
+      );
+    } catch (_) {
+      return fallback(RefreshOutcome.refreshFailed);
+    }
   }
 
   Future<Datum> getTreeById(int treeId) async {

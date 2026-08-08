@@ -7,6 +7,7 @@ import 'package:traceability_app/screens/tree_screen/tree_list_screen_widget/tre
 import 'package:traceability_app/screens/tree_screen/tree_list_screen_widget/tree_tile_widget.dart';
 import 'package:traceability_app/screens/tree_screen/tree_upsert_screen.dart';
 import 'package:traceability_app/screens/widgets/pending_sync_badge.dart';
+import 'package:traceability_app/screens/widgets/stale_data_banner.dart';
 import 'package:traceability_app/themes/theme_text.dart';
 
 import 'package:traceability_app/themes/app_tokens.dart';
@@ -111,6 +112,18 @@ class TreeListByPlotScreen extends StatelessWidget {
                           ),
                         ),
                       ],
+                    ),
+                  ),
+                ),
+
+              if (!isOffline)
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                    child: StaleDataBanner(
+                      outcome: c.refreshOutcome.value,
+                      isID: isID,
+                      onRetry: c.refreshData,
                     ),
                   ),
                 ),

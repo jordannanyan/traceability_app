@@ -6,11 +6,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:get/get.dart';
 import 'package:traceability_app/models/api/plot_api.dart';
+import 'package:traceability_app/models/api/refresh_outcome.dart';
 import 'package:traceability_app/models/get_plot_by_farmer_id.dart';
 import 'package:traceability_app/screens/lahan_screen/lahan_screen_widget/plot_list_farmer_widget.dart';
 import 'package:traceability_app/screens/lahan_screen/lahan_screen_widget/plot_map_widget.dart';
 import 'package:traceability_app/screens/widgets/bottom_navigation_bar_widget.dart';
 import 'package:traceability_app/screens/widgets/offline_banner.dart';
+import 'package:traceability_app/screens/widgets/stale_data_banner.dart';
 import 'package:traceability_app/services/language_service.dart';
 import 'package:traceability_app/themes/theme_color.dart';
 import 'package:traceability_app/themes/theme_text.dart';
@@ -28,6 +30,9 @@ class _PlotScreenState extends State<PlotScreen> {
 
   bool _isOfflineView = false;
   bool _syncing = false;
+
+  /// Kenapa daftar ini berisi apa yang ditampilkan.
+  RefreshOutcome _refreshOutcome = RefreshOutcome.fresh;
 
   int? _farmerId;
   final _api = PlotApi();
@@ -77,8 +82,9 @@ class _PlotScreenState extends State<PlotScreen> {
     final conn = await Connectivity().checkConnectivity();
     _isOfflineView = !_isOnlineFrom(conn);
 
-    final res = await _api.getPlotByFarmerIdCached(_farmerId!);
-    return res.data;
+    final result = await _api.getPlotByFarmerIdCached(_farmerId!);
+    _refreshOutcome = result.outcome;
+    return result.data.data;
   }
 
   Future<void> _refresh() async {
@@ -188,6 +194,15 @@ class _PlotScreenState extends State<PlotScreen> {
                     child: OfflineBanner(
                       isID: isID,
                       margin: EdgeInsets.zero,
+                    ),
+                  )
+                else
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                    child: StaleDataBanner(
+                      outcome: _refreshOutcome,
+                      isID: isID,
+                      onRetry: _refresh,
                     ),
                   ),
 

@@ -30,6 +30,7 @@ import 'package:synchronized/synchronized.dart';
 import 'package:traceability_app/models/add_plot.dart';
 import 'package:traceability_app/models/api/outbox_error.dart';
 import 'package:traceability_app/models/api/pending_outbox.dart';
+import 'package:traceability_app/models/api/refresh_outcome.dart';
 import 'package:traceability_app/models/edit_plot.dart';
 import 'package:traceability_app/models/get_plot_by_farmer_id.dart';
 // Both plot list models declare `Datum`; the prefix disambiguates the one the
@@ -469,31 +470,23 @@ class PlotApi {
   }
 
   /// Versi cached-first (offline-first)
-  Future<GetPlotByKthId> getPlotByKthIdCached(int kthId) async {
-    final online = await _isOnline();
-
-    if (online) {
-      try {
-        final opt = await _auth();
-        final resp = await _dio.get('/plots/kth/$kthId', options: opt);
-        if (resp.statusCode == 200) {
+  Future<CachedResult<GetPlotByKthId>> getPlotByKthIdCached(int kthId) =>
+      readCachedFirst<GetPlotByKthId>(
+        isOnline: _isOnline,
+        request: () async =>
+            _dio.get('/plots/kth/$kthId', options: await _auth()),
+        parseAndCache: (resp) async {
           await _saveKthCache(kthId: kthId, data: resp.data);
           return getPlotByKthIdFromJson(jsonEncode(resp.data));
-        }
-        final cached = await _loadKthCacheModel(kthId);
-        if (cached != null) return cached;
-        _throwHttp(resp, 'Failed to fetch plot data by KTH');
-      } catch (_) {
-        final cached = await _loadKthCacheModel(kthId);
-        if (cached != null) return cached;
-        return GetPlotByKthId(status: 'online-error-no-cache', data: []);
-      }
-    } else {
-      final cached = await _loadKthCacheModel(kthId);
-      if (cached != null) return cached;
-      return GetPlotByKthId(status: 'offline-no-cache', data: []);
-    }
-  }
+        },
+        readCache: () => _loadKthCacheModel(kthId),
+        emptyValue: (outcome) => GetPlotByKthId(
+          status: outcome == RefreshOutcome.offlineCache
+              ? 'offline-no-cache'
+              : 'online-error-no-cache',
+          data: [],
+        ),
+      );
 
   /// Versi online murni (dipertahankan)
   Future<GetPlotByFarmerId> getPlotByFarmerId(int farmerId) async {
@@ -506,31 +499,24 @@ class PlotApi {
   }
 
   /// Versi cached-first (offline-first)
-  Future<GetPlotByFarmerId> getPlotByFarmerIdCached(int farmerId) async {
-    final online = await _isOnline();
-
-    if (online) {
-      try {
-        final opt = await _auth();
-        final resp = await _dio.get('/plots/farmer/$farmerId', options: opt);
-        if (resp.statusCode == 200) {
-          await _saveFarmerCache(farmerId: farmerId, data: resp.data);
-          return getPlotByFarmerIdFromJson(jsonEncode(resp.data));
-        }
-        final cached = await _loadFarmerCacheModel(farmerId);
-        if (cached != null) return cached;
-        _throwHttp(resp, 'Failed to fetch plot data by farmer');
-      } catch (_) {
-        final cached = await _loadFarmerCacheModel(farmerId);
-        if (cached != null) return cached;
-        return GetPlotByFarmerId(status: 'online-error-no-cache', data: []);
-      }
-    } else {
-      final cached = await _loadFarmerCacheModel(farmerId);
-      if (cached != null) return cached;
-      return GetPlotByFarmerId(status: 'offline-no-cache', data: []);
-    }
-  }
+  Future<CachedResult<GetPlotByFarmerId>> getPlotByFarmerIdCached(
+    int farmerId,
+  ) => readCachedFirst<GetPlotByFarmerId>(
+    isOnline: _isOnline,
+    request: () async =>
+        _dio.get('/plots/farmer/$farmerId', options: await _auth()),
+    parseAndCache: (resp) async {
+      await _saveFarmerCache(farmerId: farmerId, data: resp.data);
+      return getPlotByFarmerIdFromJson(jsonEncode(resp.data));
+    },
+    readCache: () => _loadFarmerCacheModel(farmerId),
+    emptyValue: (outcome) => GetPlotByFarmerId(
+      status: outcome == RefreshOutcome.offlineCache
+          ? 'offline-no-cache'
+          : 'online-error-no-cache',
+      data: [],
+    ),
+  );
 
   /// Detail plot
   Future<GetPlotById> getPlotById(int plotId) async {

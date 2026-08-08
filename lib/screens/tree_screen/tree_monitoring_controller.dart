@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import 'package:traceability_app/models/api/pending_outbox.dart';
+import 'package:traceability_app/models/api/refresh_outcome.dart';
 import 'package:traceability_app/models/api/tree_monitoring_api.dart';
 import 'package:traceability_app/models/tree_monitoring.dart';
 import 'package:traceability_app/screens/widgets/pending_sync_badge.dart';
@@ -31,6 +32,9 @@ class TreeMonitoringController extends GetxController
 
   /// Queued-but-not-uploaded monitoring ops for this tree.
   final pending = PendingIndex.empty.obs;
+
+  /// Kenapa daftar ini berisi apa yang ditampilkan.
+  final refreshOutcome = RefreshOutcome.fresh.obs;
 
   final page = 1.obs;
   final pageSize = 10.obs;
@@ -98,11 +102,13 @@ class TreeMonitoringController extends GetxController
       final conn = await Connectivity().checkConnectivity();
       isOfflineView.value = !_isOnlineFrom(conn);
 
-      final pageRes = await _api.listByTreeCached(
+      final result = await _api.listByTreeCached(
         treeId: treeId,
         page: 1,
         perPage: 100,
       );
+      refreshOutcome.value = result.outcome;
+      final pageRes = result.data;
       lastSync.value = await _api.getListCacheTime(
         treeId,
         page: 1,

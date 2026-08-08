@@ -6,6 +6,7 @@ import 'package:traceability_app/screens/kth_plot_screen/kth_plot_controller.dar
 import 'package:traceability_app/screens/kth_plot_screen/kth_plot_screen_widget/offline_banner_widget.dart';
 import 'package:traceability_app/screens/kth_plot_screen/kth_plot_screen_widget/plot_tile_widget.dart';
 import 'package:traceability_app/screens/lahan_screen/lahan_screen_widget/plot_map_widget.dart';
+import 'package:traceability_app/screens/widgets/stale_data_banner.dart';
 import 'package:traceability_app/services/language_service.dart';
 import 'package:traceability_app/themes/theme_color.dart';
 
@@ -77,6 +78,15 @@ class KthPlotScreen extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
                   child: KthOfflineBannerWithSync(c: c, ctx: context),
+                )
+              else
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                  child: StaleDataBanner(
+                    outcome: c.refreshOutcome.value,
+                    isID: isID,
+                    onRetry: c.refresh,
+                  ),
                 ),
 
               // Map + stats

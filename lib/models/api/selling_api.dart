@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:synchronized/synchronized.dart';
 
 import 'package:traceability_app/models/api/outbox_error.dart';
+import 'package:traceability_app/models/api/refresh_outcome.dart';
 import 'package:traceability_app/models/get_selling_by_id.dart';
 import 'package:traceability_app/models/get_selling_by_kth_id.dart';
 import 'package:traceability_app/utils/utils.dart';
@@ -234,31 +235,23 @@ class SellingApi {
   }
 
   /// Cached-first (offline-first)
-  Future<GetSellingByKthId> getSellingByKthIdCached(int kthId) async {
-    final online = await _isOnline();
-
-    if (online) {
-      try {
-        final opt = await _auth();
-        final resp = await _dio.get('/selling/kth/$kthId', options: opt);
-        if (resp.statusCode == 200) {
+  Future<CachedResult<GetSellingByKthId>> getSellingByKthIdCached(int kthId) =>
+      readCachedFirst<GetSellingByKthId>(
+        isOnline: _isOnline,
+        request: () async =>
+            _dio.get('/selling/kth/$kthId', options: await _auth()),
+        parseAndCache: (resp) async {
           await _saveKthCache(kthId: kthId, data: resp.data);
           return getSellingByKthIdFromJson(jsonEncode(resp.data));
-        }
-        final cached = await _loadKthCacheModel(kthId);
-        if (cached != null) return cached;
-        _throwHttp(resp, 'Failed to fetch selling data');
-      } catch (_) {
-        final cached = await _loadKthCacheModel(kthId);
-        if (cached != null) return cached;
-        return GetSellingByKthId(status: 'online-error-no-cache', data: []);
-      }
-    } else {
-      final cached = await _loadKthCacheModel(kthId);
-      if (cached != null) return cached;
-      return GetSellingByKthId(status: 'offline-no-cache', data: []);
-    }
-  }
+        },
+        readCache: () => _loadKthCacheModel(kthId),
+        emptyValue: (outcome) => GetSellingByKthId(
+          status: outcome == RefreshOutcome.offlineCache
+              ? 'offline-no-cache'
+              : 'online-error-no-cache',
+          data: [],
+        ),
+      );
 
   /// Detail (online). Kalau mau, bisa ditambah versi cached per-id.
   Future<GetSellingById> getSellingById(int id) async {

@@ -8,6 +8,7 @@ import 'package:synchronized/synchronized.dart';
 
 import 'package:traceability_app/models/api/outbox_error.dart';
 import 'package:traceability_app/models/api/pending_outbox.dart';
+import 'package:traceability_app/models/api/refresh_outcome.dart';
 import 'package:traceability_app/models/add_purchasing.dart';
 import 'package:traceability_app/models/edit_purchasing.dart';
 import 'package:traceability_app/models/get_purchasing_by_farmer_id.dart';
@@ -463,31 +464,19 @@ class PurchasingApi {
       getPurchasingByKthId(kthId);
 
   /// CACHED-FIRST (OFFLINE-FIRST): by KTH
-  Future<GetPurchasingByKthId> getPurchasingByKthIdCached(int kthId) async {
-    final online = await _isOnline();
-
-    if (online) {
-      try {
-        final opt = await _auth();
-        final resp = await _dio.get('/purchasing/kth/$kthId', options: opt);
-        if (resp.statusCode == 200) {
-          await _saveKthCache(kthId: kthId, respData: resp.data);
-          return getPurchasingByKthIdFromJson(jsonEncode(resp.data));
-        }
-        final cached = await _loadKthCacheModel(kthId);
-        if (cached != null) return cached;
-        _throwHttp(resp, 'Failed to load purchasing data by KTH');
-      } catch (_) {
-        final cached = await _loadKthCacheModel(kthId);
-        if (cached != null) return cached;
-        return getPurchasingByKthIdFromJson(jsonEncode({'data': []}));
-      }
-    } else {
-      final cached = await _loadKthCacheModel(kthId);
-      if (cached != null) return cached;
-      return getPurchasingByKthIdFromJson(jsonEncode({'data': []}));
-    }
-  }
+  Future<CachedResult<GetPurchasingByKthId>> getPurchasingByKthIdCached(
+    int kthId,
+  ) => readCachedFirst<GetPurchasingByKthId>(
+    isOnline: _isOnline,
+    request: () async =>
+        _dio.get('/purchasing/kth/$kthId', options: await _auth()),
+    parseAndCache: (resp) async {
+      await _saveKthCache(kthId: kthId, respData: resp.data);
+      return getPurchasingByKthIdFromJson(jsonEncode(resp.data));
+    },
+    readCache: () => _loadKthCacheModel(kthId),
+    emptyValue: (_) => getPurchasingByKthIdFromJson(jsonEncode({'data': []})),
+  );
 
   Future<GetPurchasingByFarmerId> getPurchasingByFarmerId(int farmerId) async {
     final opt = await _auth();
@@ -498,39 +487,24 @@ class PurchasingApi {
     _throwHttp(resp, 'Failed to fetch purchasing data by farmer');
   }
 
-  Future<GetPurchasingByFarmerId> getPurchasingByFarmerIdCached(
+  Future<CachedResult<GetPurchasingByFarmerId>> getPurchasingByFarmerIdCached(
     int farmerId,
-  ) async {
-    final online = await _isOnline();
-
-    if (online) {
-      try {
-        final opt = await _auth();
-        final resp = await _dio.get(
-          '/purchasing/farmer/$farmerId',
-          options: opt,
-        );
-        if (resp.statusCode == 200) {
-          await _savePurchasingCache(farmerId: farmerId, respData: resp.data);
-          return getPurchasingByFarmerIdFromJson(jsonEncode(resp.data));
-        }
-        final cached = await _loadPurchasingCacheModel(farmerId);
-        if (cached != null) return cached;
-        _throwHttp(resp, 'Failed to fetch purchasing data by farmer');
-      } catch (_) {
-        final cached = await _loadPurchasingCacheModel(farmerId);
-        if (cached != null) return cached;
-        return GetPurchasingByFarmerId(
-          status: 'online-error-no-cache',
-          data: [],
-        );
-      }
-    } else {
-      final cached = await _loadPurchasingCacheModel(farmerId);
-      if (cached != null) return cached;
-      return GetPurchasingByFarmerId(status: 'offline-no-cache', data: []);
-    }
-  }
+  ) => readCachedFirst<GetPurchasingByFarmerId>(
+    isOnline: _isOnline,
+    request: () async =>
+        _dio.get('/purchasing/farmer/$farmerId', options: await _auth()),
+    parseAndCache: (resp) async {
+      await _savePurchasingCache(farmerId: farmerId, respData: resp.data);
+      return getPurchasingByFarmerIdFromJson(jsonEncode(resp.data));
+    },
+    readCache: () => _loadPurchasingCacheModel(farmerId),
+    emptyValue: (outcome) => GetPurchasingByFarmerId(
+      status: outcome == RefreshOutcome.offlineCache
+          ? 'offline-no-cache'
+          : 'online-error-no-cache',
+      data: [],
+    ),
+  );
 
   Future<GetPurchasingById> getPurchasingById(int id) async {
     final opt = await _auth();

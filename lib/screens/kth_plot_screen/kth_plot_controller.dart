@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import 'package:traceability_app/models/api/pending_outbox.dart';
+import 'package:traceability_app/models/api/refresh_outcome.dart';
 import 'package:traceability_app/models/api/plot_api.dart';
 import 'package:traceability_app/models/get_plot_by_farmer_id.dart' as plot_list;
 import 'package:traceability_app/screens/widgets/pending_sync_badge.dart';
@@ -30,6 +31,9 @@ class KthPlotController extends GetxController {
 
   /// Queued-but-not-uploaded plot ops for this farmer.
   final pending = PendingIndex.empty.obs;
+
+  /// Kenapa daftar ini berisi apa yang ditampilkan.
+  final refreshOutcome = RefreshOutcome.fresh.obs;
 
   @override
   void onInit() {
@@ -110,7 +114,9 @@ class KthPlotController extends GetxController {
       final conn = await Connectivity().checkConnectivity();
       isOfflineView.value = !_isOnlineFrom(conn);
 
-      final res = await _api.getPlotByFarmerIdCached(farmerId);
+      final result = await _api.getPlotByFarmerIdCached(farmerId);
+      refreshOutcome.value = result.outcome;
+      final res = result.data;
       final cacheTime = await _api.getPlotByFarmerCacheTime(farmerId);
 
       lastSync.value = cacheTime;

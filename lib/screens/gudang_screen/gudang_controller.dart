@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:traceability_app/models/api/pending_outbox.dart';
+import 'package:traceability_app/models/api/refresh_outcome.dart';
 import 'package:traceability_app/models/api/warehouse_api.dart';
 import 'package:traceability_app/models/get_warehouse_by_kth_id.dart' as wh;
 import 'package:traceability_app/services/language_service.dart';
@@ -25,6 +26,9 @@ class GudangController extends GetxController
 
   /// Queued-but-not-uploaded warehouse edits.
   final pending = PendingIndex.empty.obs;
+
+  /// Kenapa daftar ini berisi apa yang ditampilkan.
+  final refreshOutcome = RefreshOutcome.fresh.obs;
 
   /// Pending state of a rendered row, or `null` when it is fully synced.
   PendingOpKind? pendingKindFor(int? rowId) => pending.value.kindFor(rowId);
@@ -127,9 +131,10 @@ class GudangController extends GetxController
       final conn = await Connectivity().checkConnectivity();
       isOfflineView.value = !_isOnlineFrom(conn);
 
-      final res = await _api.getWarehouseByKthIdCached(kthId);
+      final result = await _api.getWarehouseByKthIdCached(kthId);
+      refreshOutcome.value = result.outcome;
       lastSync.value = await _api.getWarehouseByKthCacheTime(kthId);
-      items.value = res.data ?? [];
+      items.value = result.data.data ?? [];
 
       // A warehouse edited offline still shows its old (cached) values, so the
       // row gets a PendingSyncBadge to explain why.

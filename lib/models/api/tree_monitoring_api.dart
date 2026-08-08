@@ -10,6 +10,7 @@ import 'package:synchronized/synchronized.dart';
 
 import 'package:traceability_app/models/api/outbox_error.dart';
 import 'package:traceability_app/models/api/pending_outbox.dart';
+import 'package:traceability_app/models/api/refresh_outcome.dart';
 import 'package:traceability_app/models/tree_monitoring.dart';
 import 'package:traceability_app/utils/utils.dart'; // AppConstants.baseUrl
 import 'package:traceability_app/models/api/session_monitor.dart';
@@ -298,24 +299,47 @@ class TreeMonitoringApi {
     _throwHttp(resp, 'Failed to fetch monitorings');
   }
 
-  Future<MonitoringPage> listByTreeCached({
+  /// Cached-first, dengan alasan kenapa datanya seperti itu. [listByTree]
+  /// melempar `DioException` (berikut response) untuk non-200, jadi status
+  /// sesinya dibaca dari exception tersebut.
+  Future<CachedResult<MonitoringPage>> listByTreeCached({
     required int treeId,
     int page = 1,
     int perPage = 20,
   }) async {
-    final online = await _isOnline();
-    if (online) {
-      try {
-        final res = await listByTree(treeId: treeId, page: page, perPage: perPage);
-        await _saveListCache(treeId: treeId, page: page, perPage: perPage, data: res.toJson());
-        return res;
-      } catch (_) {
-        final cached = await _loadListCacheModel(treeId, page, perPage);
-        return cached ?? MonitoringPage(currentPage: page, data: const [], perPage: perPage, total: 0);
-      }
-    } else {
+    Future<CachedResult<MonitoringPage>> fallback(RefreshOutcome outcome) async {
       final cached = await _loadListCacheModel(treeId, page, perPage);
-      return cached ?? MonitoringPage(currentPage: page, data: const [], perPage: perPage, total: 0);
+      return CachedResult(
+        cached ??
+            MonitoringPage(
+              currentPage: page,
+              data: const [],
+              perPage: perPage,
+              total: 0,
+            ),
+        outcome,
+      );
+    }
+
+    if (!await _isOnline()) return fallback(RefreshOutcome.offlineCache);
+
+    try {
+      final res = await listByTree(treeId: treeId, page: page, perPage: perPage);
+      await _saveListCache(
+        treeId: treeId,
+        page: page,
+        perPage: perPage,
+        data: res.toJson(),
+      );
+      return CachedResult.fresh(res);
+    } on DioException catch (e) {
+      return fallback(
+        SessionMonitor.isSessionRejection(e.response?.statusCode)
+            ? RefreshOutcome.unauthorized
+            : RefreshOutcome.refreshFailed,
+      );
+    } catch (_) {
+      return fallback(RefreshOutcome.refreshFailed);
     }
   }
 

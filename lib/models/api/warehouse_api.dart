@@ -7,6 +7,7 @@ import 'package:synchronized/synchronized.dart';
 
 import 'package:traceability_app/models/api/outbox_error.dart';
 import 'package:traceability_app/models/api/pending_outbox.dart';
+import 'package:traceability_app/models/api/refresh_outcome.dart';
 import 'package:traceability_app/models/edit_warehouse.dart';
 import 'package:traceability_app/models/get_warehouse.by_id.dart';
 import 'package:traceability_app/models/get_warehouse_by_kth_id.dart';
@@ -235,46 +236,24 @@ class WarehouseApi {
   }
 
   /// Cached-first (offline-first) — untuk list gudang per KTH
-// Cached-first (offline-first) — untuk list gudang per KTH
-Future<GetWarehouseByKthId> getWarehouseByKthIdCached(int kthId) async {
-  final online = await _isOnline();
-
-  if (online) {
-    try {
-      final opt = await _auth();
-      final resp = await _dio.get('/warehouse/kth/$kthId', options: opt);
-      if (resp.statusCode == 200) {
-        await _saveKthCache(kthId: kthId, data: resp.data);
-        return getWarehouseByKthIdFromJson(jsonEncode(resp.data));
-      }
-      // server non-200 → coba cache
-      final cached = await _loadKthCacheModel(kthId);
-      if (cached != null) return cached;
-
-      // fallback: gunakan message, bukan status
-      _throwHttp(resp, 'Failed to fetch warehouse data');
-    } catch (_) {
-      // network error → fallback cache (kalau ada)
-      final cached = await _loadKthCacheModel(kthId);
-      if (cached != null) return cached;
-
-      // tidak ada cache: kembalikan objek kosong dengan message penanda
-      return GetWarehouseByKthId(
-        message: 'online-error-no-cache',
-        data: [],
-      );
-    }
-  } else {
-    final cached = await _loadKthCacheModel(kthId);
-    if (cached != null) return cached;
-
-    // tidak ada cache saat offline
-    return GetWarehouseByKthId(
-      message: 'offline-no-cache',
+  Future<CachedResult<GetWarehouseByKthId>> getWarehouseByKthIdCached(
+    int kthId,
+  ) => readCachedFirst<GetWarehouseByKthId>(
+    isOnline: _isOnline,
+    request: () async =>
+        _dio.get('/warehouse/kth/$kthId', options: await _auth()),
+    parseAndCache: (resp) async {
+      await _saveKthCache(kthId: kthId, data: resp.data);
+      return getWarehouseByKthIdFromJson(jsonEncode(resp.data));
+    },
+    readCache: () => _loadKthCacheModel(kthId),
+    emptyValue: (outcome) => GetWarehouseByKthId(
+      message: outcome == RefreshOutcome.offlineCache
+          ? 'offline-no-cache'
+          : 'online-error-no-cache',
       data: [],
-    );
-  }
-}
+    ),
+  );
 
   /// Detail (online). Kalau mau, bisa ditambah cache per-id.
   Future<GetWarehouseById> getWarehouseById(int id) async {
