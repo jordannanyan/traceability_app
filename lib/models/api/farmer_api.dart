@@ -9,6 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:synchronized/synchronized.dart';
 
 import 'package:traceability_app/models/api/outbox_error.dart';
+import 'package:traceability_app/models/api/pending_outbox.dart';
 import 'package:traceability_app/utils/utils.dart';
 
 // LIST model you provided (controller /farmers returns an array)
@@ -741,4 +742,9 @@ class FarmerApi {
     // once now (pushFarmerOutbox self-guards on connectivity).
     await flush();
   }
+
+  /// Seluruh antrean modul ini, untuk halaman Data Offline.
+  static Future<List<PendingOp>> pendingOps() =>
+      PendingOps.read(_outboxKey);
+
 }

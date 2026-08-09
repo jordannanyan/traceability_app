@@ -1173,4 +1173,9 @@ class PlotApi {
     // connectivity, so this is a no-op when offline).
     await flush();
   }
+
+  /// Seluruh antrean modul ini, untuk halaman Data Offline.
+  static Future<List<PendingOp>> pendingOps() =>
+      PendingOps.read(_outboxKey);
+
 }

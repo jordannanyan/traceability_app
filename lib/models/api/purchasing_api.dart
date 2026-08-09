@@ -383,6 +383,20 @@ class PurchasingApi {
     return PendingIndex.from(merged);
   }
 
+  /// Seluruh antrean modul ini (CRUD + perubahan status), untuk halaman Data
+  /// Offline. Keduanya digabung karena bagi pengguna sama saja: pekerjaan yang
+  /// belum terkirim.
+  static Future<List<PendingOp>> pendingOps() async {
+    final crud = await PendingOps.read(_crudOutboxKey);
+    final status = await PendingOps.read(
+      _statusOutboxKey,
+      entityIdField: 'purchase_id',
+      forceKind: PendingOpKind.update,
+    );
+    return <PendingOp>[...crud, ...status]
+      ..sort((a, b) => a.ts.compareTo(b.ts));
+  }
+
   /// Renders a queued create as a list row, with a synthetic negative id.
   static kth_purchasing.Datum pendingPurchasingRow(PendingOp op) =>
       kth_purchasing.Datum.fromJson({

@@ -71,7 +71,16 @@ class HomeKthScreen extends StatelessWidget {
                         label: c.language.value == 'id'
                             ? 'Pembelian'
                             : 'Purchasing',
+                        trailingSpace: 20,
                         onTap: () => Navigator.pushNamed(context, '/setoran'),
+                      ),
+                      QuickActionTile(
+                        icon: Icons.cloud_upload_outlined,
+                        label: c.language.value == 'id'
+                            ? 'Data Offline'
+                            : 'Offline Data',
+                        onTap: () =>
+                            Navigator.pushNamed(context, '/data-offline'),
                       ),
                     ],
                   ),

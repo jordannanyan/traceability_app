@@ -20,6 +20,7 @@ import 'package:traceability_app/screens/kth_plot_screen/kth_edit_plot_screen.da
 import 'package:traceability_app/screens/kth_plot_screen/kth_plot_screen.dart';
 import 'package:traceability_app/screens/kth_plot_screen/kth_polygon_screen.dart';
 import 'package:traceability_app/screens/lahan_screen/lahan_screen.dart';
+import 'package:traceability_app/screens/offline_task_screen/offline_task_screen.dart';
 import 'package:traceability_app/screens/language_screen/language_screen.dart';
 import 'package:traceability_app/screens/login_screen/login_koperasi_screen.dart';
 import 'package:traceability_app/screens/login_screen/login_petani_screen.dart';
@@ -136,6 +137,7 @@ class MyApp extends StatelessWidget {
         '/login-koperasi': (_) => const LoginKoperasiScreen(),
         '/home': (_) => const HomeWrapper(),
         '/gudang': (_) => const GudangScreen(),
+        '/data-offline': (_) => const OfflineTaskScreen(),
         '/edit_warehouse': (_) => const EditWarehouseScreen(),
 
         // ===== FARMER =====

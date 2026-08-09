@@ -1891,4 +1891,9 @@ class TreeApi {
     // once now (flush() checks connectivity itself).
     await flush();
   }
+
+  /// Seluruh antrean modul ini, untuk halaman Data Offline.
+  static Future<List<PendingOp>> pendingOps() =>
+      PendingOps.read(_crudOutboxKey);
+
 }

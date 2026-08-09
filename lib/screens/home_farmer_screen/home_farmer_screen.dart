@@ -44,6 +44,14 @@ class HomeFarmerScreen extends StatelessWidget {
                             context, '/pembelian-petani'),
                       ),
                       QuickActionTile(
+                        icon: Icons.cloud_upload_outlined,
+                        label: c.language.value == 'id'
+                            ? 'Data Offline'
+                            : 'Offline Data',
+                        onTap: () =>
+                            Navigator.pushNamed(context, '/data-offline'),
+                      ),
+                      QuickActionTile(
                         icon: Icons.settings_outlined,
                         label: c.language.value == 'id'
                             ? 'Pengaturan'

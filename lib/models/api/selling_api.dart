@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:synchronized/synchronized.dart';
 
 import 'package:traceability_app/models/api/outbox_error.dart';
+import 'package:traceability_app/models/api/pending_outbox.dart';
 import 'package:traceability_app/models/api/refresh_outcome.dart';
 import 'package:traceability_app/models/get_selling_by_id.dart';
 import 'package:traceability_app/models/get_selling_by_kth_id.dart';
@@ -467,4 +468,9 @@ class SellingApi {
     // once now (pushSellingOutbox self-guards on connectivity).
     await flush();
   }
+
+  /// Seluruh antrean modul ini, untuk halaman Data Offline.
+  static Future<List<PendingOp>> pendingOps() =>
+      PendingOps.read(_outboxKey);
+
 }

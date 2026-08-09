@@ -879,4 +879,9 @@ class TreeMonitoringApi {
     // once now (pushOutbox self-guards on connectivity).
     await flush();
   }
+
+  /// Seluruh antrean modul ini, untuk halaman Data Offline.
+  static Future<List<PendingOp>> pendingOps() =>
+      PendingOps.read(_outboxKey);
+
 }
