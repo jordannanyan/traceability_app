@@ -14,6 +14,7 @@ import 'package:traceability_app/screens/widgets/gps_loading_dialog.dart';
 import 'package:traceability_app/screens/widgets/in_app_camera_screen.dart';
 import 'package:traceability_app/services/gps_sampler.dart';
 import 'package:traceability_app/services/language_service.dart';
+import 'package:traceability_app/utils/polygon_quality.dart';
 
 // ---------------------------------------------------------------------------
 // Data class
@@ -37,6 +38,36 @@ class PolyPoint {
   bool get hasAnyPhoto =>
       (localPhotoPath != null && localPhotoPath!.isNotEmpty) ||
       (remotePhotoPath != null && remotePhotoPath!.isNotEmpty);
+}
+
+/// What the editor returns in draft mode (a new plot without an id yet): the
+/// WKT for the plot form, plus the captured vertices with their photo,
+/// accuracy and time so they can be uploaded once the plot is created.
+class PolygonDraft {
+  final String wkt;
+  final List<PolyPoint> points;
+
+  const PolygonDraft({required this.wkt, required this.points});
+
+  List<PlotPolygonPoint> toApiPoints() => [
+        for (int i = 0; i < points.length; i++)
+          PlotPolygonPoint(
+            seq: i + 1,
+            latitude: points[i].latLng.latitude,
+            longitude: points[i].latLng.longitude,
+            capturedAt: points[i].capturedAt ?? DateTime.now(),
+            accuracyM: points[i].accuracyM,
+            source: 'mobile',
+          ),
+      ];
+
+  /// seq -> local photo file, only for vertices whose photo still exists.
+  Map<int, String> localPhotos() => {
+        for (int i = 0; i < points.length; i++)
+          if ((points[i].localPhotoPath ?? '').isNotEmpty &&
+              File(points[i].localPhotoPath!).existsSync())
+            i + 1: points[i].localPhotoPath!,
+      };
 }
 
 // ---------------------------------------------------------------------------
@@ -126,8 +157,15 @@ class KthPolygonController extends GetxController {
 
     final parsed = _parseWkt(wkt);
     final hasWktPolygon = parsed.length >= 3;
-    if (parsed.isNotEmpty) {
+    // Reopening a draft: keep the earlier vertices' photos/accuracy as long
+    // as the WKT in the form is still the one this draft produced.
+    final draft = args is Map ? args['polygonDraft'] : null;
+    if (draft is PolygonDraft && draft.wkt == wkt.trim() && draft.points.isNotEmpty) {
+      points.addAll(draft.points);
+    } else if (parsed.isNotEmpty) {
       points.addAll(parsed.map((p) => PolyPoint(latLng: p)));
+    }
+    if (parsed.isNotEmpty) {
       final c = _centroid(parsed);
       if (c != null) {
         center = c;
@@ -510,6 +548,19 @@ class KthPolygonController extends GetxController {
     }
 
     final newPt = LatLng(pos.latitude, pos.longitude);
+    // The same corner taken twice — the usual reason a boundary came out as a
+    // sliver: walk to the next corner first.
+    final near = PolygonQuality.nearest(newPt, points.map((e) => e.latLng).toList());
+    if (near != null && near.$2 < PolygonQuality.minCornerSpacingM) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            duration: const Duration(seconds: 6),
+            content: Text(isID
+                ? 'Titik ini hanya ${near.$2.toStringAsFixed(1)} m dari titik ke-${near.$1 + 1}. Jalan ke sudut lahan berikutnya, lalu ambil lagi.'
+                : 'This point is only ${near.$2.toStringAsFixed(1)} m from point ${near.$1 + 1}. Walk to the next corner of the plot, then try again.')));
+      }
+      return;
+    }
     points.add(PolyPoint(
       latLng: newPt,
       localPhotoPath: file.path,
@@ -525,6 +576,12 @@ class KthPolygonController extends GetxController {
     if (warn != null && context.mounted) {
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text(warn)));
+    } else if (pos.accuracy > PolygonQuality.warnAccuracyM && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          duration: const Duration(seconds: 6),
+          content: Text(isID
+              ? 'Akurasi GPS ±${pos.accuracy.toStringAsFixed(0)} m — titik ini bisa meleset. Tunggu sinyal membaik lalu ulangi (Undo), atau lanjutkan.'
+              : 'GPS accuracy ±${pos.accuracy.toStringAsFixed(0)} m — this point may be off. Wait for a better fix and redo it (Undo), or carry on.')));
     }
   }
 
@@ -550,6 +607,41 @@ class KthPolygonController extends GetxController {
     if (isLoading.value) return;
     final isID = LanguageService.to.isId;
 
+    // One point per corner, an outline that does not cross itself, and the size
+    // of a real plot — see utils/polygon_quality.dart.
+    void tell(String id, String en) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            duration: const Duration(seconds: 6), content: Text(isID ? id : en)));
+      }
+    }
+    if (points.length >= 3 && points.length < PolygonQuality.minCorners) {
+      tell('Ambil minimal ${PolygonQuality.minCorners} titik — satu di setiap sudut lahan.',
+          'Take at least ${PolygonQuality.minCorners} points — one at every corner of the plot.');
+      return;
+    }
+    if (points.length >= PolygonQuality.minCorners &&
+        PolygonQuality.selfIntersects(points.map((e) => e.latLng).toList())) {
+      // Walked out of order: put the corners back in order around the plot
+      // (each keeps its photo and accuracy).
+      final order = PolygonQuality.orderAroundCentre(points.map((e) => e.latLng).toList());
+      final reordered = [for (final i in order) points[i]];
+      points
+        ..clear()
+        ..addAll(reordered);
+      isDirty.value = true;
+      tell('Garis polygon saling menyilang — urutan titik sudah dirapikan mengelilingi lahan.',
+          'The outline crossed itself — the points were put back in order around the plot.');
+    }
+    if (points.length >= PolygonQuality.minCorners) {
+      final area = PolygonQuality.areaM2(points.map((e) => e.latLng).toList());
+      if (area < PolygonQuality.minAreaM2) {
+        tell('Luas polygon hanya ${area.toStringAsFixed(0)} m² — titik-titiknya terlalu berdekatan. Jalan mengelilingi batas lahan dan ambil titik di setiap sudut.',
+            'The polygon is only ${area.toStringAsFixed(0)} m² — the points are bunched together. Walk the plot boundary and take a point at every corner.');
+        return;
+      }
+    }
+
     final wkt = buildWkt();
     if (wkt.isEmpty) {
       if (context.mounted) {
@@ -566,6 +658,7 @@ class KthPolygonController extends GetxController {
     // setelah plot pertama kali tersimpan.
     if (isDraft || plotId == null) {
       isDirty.value = false;
+      final draft = PolygonDraft(wkt: wkt, points: List.of(points));
       if (_resumed) {
         // Reopened standalone after a camera-kill — the add-plot screen that
         // would receive this WKT is gone. Continue there with it prefilled.
@@ -574,10 +667,11 @@ class KthPolygonController extends GetxController {
             'farmerId': farmerId ?? 0,
             'farmerName': farmerName,
             'polygonWkt': wkt,
+            'polygonDraft': draft,
           });
         }
       } else if (context.mounted) {
-        Navigator.pop(context, wkt);
+        Navigator.pop(context, draft);
       }
       return;
     }
@@ -593,6 +687,7 @@ class KthPolygonController extends GetxController {
             capturedAt: points[i].capturedAt ?? DateTime.now(),
             accuracyM: points[i].accuracyM,
             source: 'mobile',
+            remotePhotoPath: points[i].remotePhotoPath,
           ),
       ];
 
