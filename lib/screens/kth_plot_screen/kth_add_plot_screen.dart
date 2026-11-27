@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import 'package:traceability_app/screens/kth_plot_screen/kth_add_plot_controller.dart';
+import 'package:traceability_app/screens/kth_plot_screen/kth_polygon_controller.dart';
 import 'package:traceability_app/screens/kth_plot_screen/kth_plot_screen_widget/plot_form_card_widget.dart';
 import 'package:traceability_app/screens/kth_plot_screen/kth_plot_screen_widget/plot_screen_header_widget.dart';
 import 'package:traceability_app/services/language_service.dart';
@@ -12,12 +13,14 @@ class KthAddPlotScreen extends StatefulWidget {
   final int farmerId;
   final String? farmerName;
   final String? initialPolygonWkt;
+  final PolygonDraft? initialPolygonDraft;
 
   const KthAddPlotScreen({
     super.key,
     required this.farmerId,
     this.farmerName,
     this.initialPolygonWkt,
+    this.initialPolygonDraft,
   });
 
   @override
@@ -42,6 +45,7 @@ class _KthAddPlotScreenState extends State<KthAddPlotScreen> {
         farmerId: widget.farmerId,
         farmerName: widget.farmerName,
         initialPolygonWkt: widget.initialPolygonWkt,
+        initialPolygonDraft: widget.initialPolygonDraft,
       ),
     );
   }

@@ -2,18 +2,29 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import 'package:traceability_app/models/api/plot_api.dart';
+import 'package:traceability_app/screens/kth_plot_screen/kth_polygon_controller.dart';
 import 'package:traceability_app/screens/widgets/coordinate_capture.dart';
 import 'package:traceability_app/services/language_service.dart';
 import 'package:traceability_app/services/message_translator.dart';
 
 class KthAddPlotController extends GetxController {
-  KthAddPlotController({required this.farmerId, this.farmerName, this.initialPolygonWkt});
+  KthAddPlotController({
+    required this.farmerId,
+    this.farmerName,
+    this.initialPolygonWkt,
+    this.initialPolygonDraft,
+  });
 
   final int farmerId;
   final String? farmerName;
 
   /// Prefilled polygon WKT — used when returning from a resumed polygon capture.
   final String? initialPolygonWkt;
+  final PolygonDraft? initialPolygonDraft;
+
+  /// Vertices (with photo + accuracy) from the polygon editor. Sent after the
+  /// plot is created, as long as the WKT field still matches this draft.
+  PolygonDraft? polygonDraft;
 
   final nameCtrl = TextEditingController();
   final landAreaCtrl = TextEditingController();
@@ -31,6 +42,7 @@ class KthAddPlotController extends GetxController {
     super.onInit();
     final wkt = initialPolygonWkt?.trim();
     if (wkt != null && wkt.isNotEmpty) polygonCtrl.text = wkt;
+    if (initialPolygonDraft != null) polygonDraft = initialPolygonDraft;
   }
 
   @override
@@ -75,6 +87,7 @@ class KthAddPlotController extends GetxController {
     latCtrl.clear();
     lngCtrl.clear();
     polygonCtrl.clear();
+    polygonDraft = null;
     formKey.currentState?.reset();
   }
 
@@ -116,6 +129,9 @@ class KthAddPlotController extends GetxController {
     isSaving.value = true;
     try {
       final api = PlotApi();
+      final draft = (polygonDraft != null && polygonDraft!.wkt == polygonWkt)
+          ? polygonDraft
+          : null;
 
       final res = await api.addPlotOfflineFirst(
         plotName: plotName,
@@ -125,6 +141,8 @@ class KthAddPlotController extends GetxController {
         longitude: lng,
         farmerId: farmerId,
         polygon: polygonWkt,
+        polygonPoints: draft?.toApiPoints(),
+        pointPhotos: draft?.localPhotos(),
       );
 
       if (!context.mounted) return;
@@ -156,12 +174,16 @@ class KthAddPlotController extends GetxController {
       arguments: {
         'draft': true,
         'polygonWkt': polygonCtrl.text.trim(),
+        'polygonDraft': polygonDraft,
         'farmerId': farmerId,
         'farmerName': farmerName,
       },
     );
 
-    if (ok is String) {
+    if (ok is PolygonDraft) {
+      polygonDraft = ok;
+      polygonCtrl.text = ok.wkt;
+    } else if (ok is String) {
       polygonCtrl.text = ok;
     }
   }

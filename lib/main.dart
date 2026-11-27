@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:traceability_app/services/language_service.dart';
 import 'package:traceability_app/services/session_guard.dart';
+import 'package:traceability_app/services/update_guard.dart';
 import 'package:traceability_app/themes/theme_color.dart';
 import 'package:traceability_app/screens/add_purchasing_screen/add_purchasing_screen.dart';
 import 'package:traceability_app/screens/edit_warehouse_screen/edit_warehouse_screen.dart';
@@ -18,6 +19,7 @@ import 'package:traceability_app/screens/gudang_screen/gudang_screen.dart';
 import 'package:traceability_app/screens/kth_plot_screen/kth_add_plot_screen.dart';
 import 'package:traceability_app/screens/kth_plot_screen/kth_edit_plot_screen.dart';
 import 'package:traceability_app/screens/kth_plot_screen/kth_plot_screen.dart';
+import 'package:traceability_app/screens/kth_plot_screen/kth_polygon_controller.dart';
 import 'package:traceability_app/screens/kth_plot_screen/kth_polygon_screen.dart';
 import 'package:traceability_app/screens/lahan_screen/lahan_screen.dart';
 import 'package:traceability_app/screens/offline_task_screen/offline_task_screen.dart';
@@ -115,9 +117,10 @@ class MyApp extends StatelessWidget {
         ),
       ),
 
-      // Clamp text scale globally, and watch for a rejected session from any
-      // screen (SessionGuard sends the user back to login instead of letting
-      // every list quietly serve stale cache).
+      // Clamp text scale globally, block an outdated install until it is
+      // updated from Play (UpdateGuard), and watch for a rejected session from
+      // any screen (SessionGuard sends the user back to login instead of
+      // letting every list quietly serve stale cache).
       builder: (context, child) {
         final mq = MediaQuery.of(context);
         final clamped = mq.textScaler.clamp(
@@ -126,7 +129,7 @@ class MyApp extends StatelessWidget {
         );
         return MediaQuery(
           data: mq.copyWith(textScaler: clamped),
-          child: SessionGuard(child: child!),
+          child: UpdateGuard(child: SessionGuard(child: child!)),
         );
       },
 
@@ -160,6 +163,9 @@ class MyApp extends StatelessWidget {
             farmerId: (map['farmerId'] as int?) ?? 0,
             farmerName: map['farmerName']?.toString(),
             initialPolygonWkt: map['polygonWkt']?.toString(),
+            initialPolygonDraft: map['polygonDraft'] is PolygonDraft
+                ? map['polygonDraft'] as PolygonDraft
+                : null,
           );
         },
         '/kth_edit_plot': (_) => const KthEditPlotScreen(),

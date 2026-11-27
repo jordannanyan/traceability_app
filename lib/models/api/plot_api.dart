@@ -84,6 +84,8 @@ class PlotPolygonPoint {
         'captured_at': (capturedAt ?? DateTime.now()).toIso8601String(),
         'accuracy_m': accuracyM,
         'source': source ?? 'mobile',
+        // Echo the server photo back so replacing the points keeps it.
+        if (remotePhotoPath != null) 'photo_path': remotePhotoPath,
       };
   static int? _toInt(dynamic v) {
     if (v == null) return null;
@@ -179,6 +181,11 @@ class PlotApi {
   // double-send / clobber the same SharedPreferences outbox. Static = shared
   // across the many transient PlotApi() instances.
   static final Lock _outboxLock = Lock();
+
+  // Keys on a queued create (POST /plots) carrying the draft polygon's
+  // vertices and per-vertex photos; stripped before the request is sent.
+  static const String _kDraftPointsKey = '__polygon_points';
+  static const String _kDraftPhotosKey = '__point_photos';
 
   // ========= Cache keys =========
   static String _cacheFarmerKey(int farmerId) => 'cache_plot_by_farmer_$farmerId';
@@ -638,16 +645,7 @@ class PlotApi {
     final opt = await _auth(extraHeaders: {'Content-Type': 'application/json'});
 
     final payload = <String, dynamic>{
-      'points': points
-          .map((p) => {
-                'seq': p.seq,
-                'latitude': p.latitude,
-                'longitude': p.longitude,
-                'captured_at': (p.capturedAt ?? DateTime.now()).toIso8601String(),
-                'accuracy_m': p.accuracyM,
-                'source': p.source ?? 'mobile',
-              })
-          .toList(),
+      'points': points.map((p) => p.toJson()).toList(),
     };
 
     final resp = await _dio.put(
@@ -699,12 +697,27 @@ class PlotApi {
     required double longitude,
     required int farmerId,
     String? polygon,
+    // Vertices captured in the polygon editor's draft mode, plus the local
+    // photo per vertex (seq -> file path). They can only be sent once the plot
+    // has a server id, so they ride along with the create.
+    List<PlotPolygonPoint>? polygonPoints,
+    Map<int, String>? pointPhotos,
   }) async {
     final online = await _isOnline();
+    final pointsJson = (polygonPoints == null || polygonPoints.length < 3)
+        ? null
+        : polygonPoints.map((p) => p.toJson()).toList();
+    final photosJson = pointsJson == null
+        ? null
+        : {
+            for (final e in (pointPhotos ?? const <int, String>{}).entries)
+              '${e.key}': e.value,
+          };
 
     if (online) {
+      AddPlot? created;
       try {
-        await addPlot(
+        created = await addPlot(
           plotName: plotName,
           landArea: landArea,
           numberOfPlants: numberOfPlants,
@@ -713,6 +726,19 @@ class PlotApi {
           farmerId: farmerId,
           polygon: polygon,
         );
+      } catch (e) {
+        if (kDebugMode) {
+          debugPrint('addPlot online failed, queueing offline: $e');
+        }
+      }
+      if (created != null) {
+        // The plot exists now — never fall through to queueing a second create.
+        final newId = created.data?.id;
+        if (newId != null && pointsJson != null) {
+          final list = await _loadOutbox();
+          list.addAll(_polygonFollowUps(newId, pointsJson, photosJson));
+          await _saveOutbox(list);
+        }
         final pushed = await pushPlotOutbox();
         final count = await getPlotOutboxCount();
         return PlotOpResult(
@@ -721,10 +747,6 @@ class PlotApi {
           outboxCount: count,
           message: pushed > 0 ? 'Tersinkron: $pushed aksi tertunda.' : 'Plot ditambahkan.',
         );
-      } catch (e) {
-        if (kDebugMode) {
-          debugPrint('addPlot online failed, queueing offline: $e');
-        }
       }
     }
 
@@ -740,6 +762,10 @@ class PlotApi {
       "longitude": longitude,
       "farmer_id": farmerId,
       if (_normPoly(polygon) != null) "polygon": _normPoly(polygon),
+      // Client-only: expanded into point + photo uploads once the create
+      // returns the new plot id (see _pushItemOnline). Never sent to the API.
+      if (pointsJson != null) _kDraftPointsKey: pointsJson,
+      if (photosJson != null && photosJson.isNotEmpty) _kDraftPhotosKey: photosJson,
     };
 
     list.add(
@@ -1023,6 +1049,48 @@ class PlotApi {
     );
   }
 
+  /// Outbox items that attach a draft polygon to a freshly created plot:
+  /// one PUT of all vertices, then one photo upload per vertex. The ts/id
+  /// offsets keep them unique and in that order (the photo route needs the
+  /// vertex rows to exist).
+  List<_PlotOutboxItem> _polygonFollowUps(
+    int plotId,
+    List<dynamic> pointsJson,
+    Map<String, dynamic>? photosJson,
+  ) {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    var n = 0;
+    _PlotOutboxItem item(String kind, String method, String endpoint,
+            Map<String, dynamic> body, String key) =>
+        _PlotOutboxItem(
+          id: '${now}_${plotId}_$n',
+          kind: kind,
+          method: method,
+          endpoint: endpoint,
+          body: body,
+          entityId: plotId,
+          entityKey: key,
+          ts: now + n++,
+        );
+
+    final out = <_PlotOutboxItem>[
+      item('polygon_points', 'PUT', '/plots/$plotId/polygon-points',
+          {'points': pointsJson}, 'polygon_points:plot:$plotId'),
+    ];
+    for (final e in (photosJson ?? const <String, dynamic>{}).entries) {
+      final seq = int.tryParse(e.key);
+      final path = e.value?.toString() ?? '';
+      if (seq == null || path.isEmpty) continue;
+      out.add(item(
+          'polygon_photo',
+          'POST',
+          '/plots/$plotId/polygon-points/$seq/photo',
+          {'file_path': path, 'plot_id': plotId, 'seq': seq},
+          'polygon_photo:plot:$plotId:seq:$seq'));
+    }
+    return out;
+  }
+
   /// Coba push outbox setelah delay singkat. Non-blocking — jalan di
   /// background, tidak menunda return ke caller. Aman dipanggil berkali-kali
   /// karena pushPlotOutbox sudah cek _isOnline di awal.
@@ -1060,9 +1128,10 @@ class PlotApi {
 
     for (final item in List<_PlotOutboxItem>.from(list)) {
       try {
-        await _pushItemOnline(item);
+        final followUps = await _pushItemOnline(item);
         success++;
         list.removeWhere((e) => e.id == item.id);
+        list.addAll(followUps);
         await _saveOutbox(list);
       } catch (e) {
         // Poison (invalid 4xx) → drop and keep processing the rest so one bad
@@ -1084,28 +1153,42 @@ class PlotApi {
     return success;
   }
 
-  Future<void> _pushItemOnline(_PlotOutboxItem it) async {
+  /// Push one outbox item. Returns follow-up items to enqueue — a queued
+  /// create that carried a draft polygon expands into its point + photo
+  /// uploads once the server has assigned the plot id.
+  Future<List<_PlotOutboxItem>> _pushItemOnline(_PlotOutboxItem it) async {
     // JSON auth for PUT/POST json
     final optJson = await _auth(extraHeaders: {'Content-Type': 'application/json'});
 
     // ========= PLOT =========
     if (it.kind == 'plot') {
       if (it.method == 'POST' && it.endpoint == '/plots') {
-        final resp = await _dio.post(it.endpoint, options: optJson, data: jsonEncode(it.body));
-        if (resp.statusCode == 200 || resp.statusCode == 201) return;
+        final body = Map<String, dynamic>.from(it.body);
+        final draftPoints = body.remove(_kDraftPointsKey);
+        final draftPhotos = body.remove(_kDraftPhotosKey);
+        final resp = await _dio.post(it.endpoint, options: optJson, data: jsonEncode(body));
+        if (resp.statusCode == 200 || resp.statusCode == 201) {
+          final data = resp.data is Map ? (resp.data as Map)['data'] : null;
+          final newId = data is Map ? int.tryParse('${data['id']}') : null;
+          if (newId == null || draftPoints is! List || draftPoints.length < 3) {
+            return const [];
+          }
+          return _polygonFollowUps(newId, draftPoints,
+              draftPhotos is Map ? Map<String, dynamic>.from(draftPhotos) : null);
+        }
         _throwHttp(resp, 'Failed to add plot (push)');
       }
 
       if (it.method == 'POST' && it.endpoint.startsWith('/plots/')) {
         final resp = await _dio.post(it.endpoint, options: optJson, data: jsonEncode(it.body));
-        if (resp.statusCode == 200) return;
+        if (resp.statusCode == 200) return const [];
         _throwHttp(resp, 'Failed to update plot (push)');
       }
 
       if (it.method == 'DELETE' && it.endpoint.startsWith('/plots/')) {
         final opt = await _auth();
         final resp = await _dio.delete(it.endpoint, options: opt);
-        if (resp.statusCode == 200) return;
+        if (resp.statusCode == 200) return const [];
         _throwHttp(resp, 'Failed to delete plot (push)');
       }
 
@@ -1116,7 +1199,7 @@ class PlotApi {
     if (it.kind == 'polygon_points') {
       if (it.method != 'PUT') throw Exception('Unsupported polygon_points method: ${it.method}');
       final resp = await _dio.put(it.endpoint, options: optJson, data: jsonEncode(it.body));
-      if (resp.statusCode == 200) return;
+      if (resp.statusCode == 200) return const [];
       _throwHttp(resp, 'Failed to replace polygon points (push)');
     }
 
@@ -1145,7 +1228,7 @@ class PlotApi {
         data: form,
       );
 
-      if (resp.statusCode == 200) return;
+      if (resp.statusCode == 200) return const [];
       _throwHttp(resp, 'Failed to upload polygon photo (push)');
     }
 
